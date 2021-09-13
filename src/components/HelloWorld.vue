@@ -1,58 +1,192 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
+
+  <div class="container">
+    <div class="row">
+
+      <div class="col-2">
+
+        <select class="form-select" v-model="ModelIdx" @change="Redraw">
+          <option selected value="-1">Elegir modelo</option>
+          <option
+            v-for="(model, modelIdx) in Models"
+            :value="modelIdx"
+            :key="modelIdx">
+            {{model}}
+          </option>
+        </select>
+
+        <select class="form-select" v-model="ColumnKey" @change="Redraw">
+          <option selected value="">Elegir columna</option>
+          <option
+            v-for="(col, colIdx) in Columns"
+            :value="col"
+            :key="colIdx">
+            {{col}}
+          </option>
+        </select>
+        
+        <template v-if="Ok">
+          <h3>Valores M:</h3>
+          <ul><li v-for="(item, idx) in KeyedDataM" :key="idx">{{item.Key}} : {{item.Value}}</li></ul>
+
+          <h3>Valores F:</h3>
+          <ul><li v-for="(item, idx) in KeyedDataF" :key="idx">{{item.Key}} : {{item.Value}}</li></ul>
+        </template>
+
+        <div class="form-check" v-if="Ok">
+        <input class="form-check-input" type="checkbox" v-model="RemoveQuestionMarks" @change="Redraw">
+        <label class="form-check-label" for="flexCheckDefault">
+          Ocultar [???]
+        </label>
+      </div>
+
+      </div>
+
+      <div class="col-10">
+      <h1 v-if="Ok">{{ CurrentModelName }}</h1>
+      <h1 v-else>Sin configurar</h1>
+      <div class="caja">
+        <Radial
+          :labels="Labels"
+          :datam="DataM"
+          :dataf="DataF"
+          v-if="Ok && !Loading"
+          ></Radial>
+      </div>
+
+    </div>
+
+
   </div>
+
+  <div class="row">
+    <div class="col" v-if="Ok"> {{ DataM }}</div>
+    <div class="col" v-if="Ok"> {{ DataF }}</div>
+    <div class="col">
+        <pre>
+          ModelIdx: {{ $data.ModelIdx }}
+          ColumnKey: {{ $data.ColumnKey }}  
+          OK: {{ Ok}}
+        </pre>
+    </div>
+    <div class="col">
+      Models
+      <pre>{{ Models }}</pre>
+    </div>
+    <div class="col">
+      Columns
+      <pre>{{ Columns }}</pre>
+    </div>
+    <div class="col">
+      Labels
+      <pre>{{ Labels }}</pre>
+    </div>
+
+  </div>
+
+</div>
+
 </template>
 
 <script>
+/* eslint-disable no-debugger */
+/* eslint-disable vue/no-unused-components */
+
+import DataDump from './../../../StereoES/result_fillmask/categorias_polaridad_visibilidad/run_result.json'
+import Radial from './Radar.vue';
+
 export default {
   name: 'HelloWorld',
+  components: { Radial },
+  created(){
+    window.app = this;
+    window.$data = this.$data;
+    this.Models = this.Data.map( modelResult => modelResult["py/tuple"][0] );
+    this.Columns = Object.keys(this.Data[0]["py/tuple"][1]["[???]"])
+      .filter( x => !x.includes("py/") )
+      .filter( x => x !== "cat" );
+    this.Loading = false;
+
+  },
   props: {
     msg: String
+  },
+  data(){
+    return {
+      Data: DataDump,
+
+      Columns: [],
+      Models: [],
+
+      // Run
+      ModelIdx: -1,
+      ColumnKey: '',
+
+      Loading: true,
+      RemoveQuestionMarks: true,
+    }
+  }, 
+  methods: {
+    Redraw(){
+      this.Loading = true;
+      setTimeout( () => this.Loading = false, 1);
+    },
+    KVData(idx){
+      let modelm = this.Data[this.ModelIdx]["py/tuple"][idx];
+      let values = [];
+      this.Labels.forEach( label => values.push({ Key: label, Value: modelm[label][this.ColumnKey]}) );
+      return values;
+    },
+
+  },
+  computed: {
+    KeyedDataM(){
+      return this.KVData(1);
+    },
+    KeyedDataF(){
+      return this.KVData(2);
+    },
+    DataM(){
+      return this.KVData(1).map( x => x.Value);
+    },
+    DataF(){
+      return this.KVData(2).map( x => x.Value);
+    },
+    CurrentModelName(){
+      return this.Data[this.ModelIdx]["py/tuple"][0];
+    },
+    Ok(){
+      return this.ModelIdx !== -1 && this.ColumnKey !== '';
+    },
+    Labels(){
+      let labels = Object
+        .keys(this.Data[0]["py/tuple"][1])
+        .filter( x => x !== "[_TOTAL]");
+      if(this.RemoveQuestionMarks)
+      return labels.filter( x => x !== "[???]");
+      return labels;
+    }
   }
+  
 }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-h3 {
-  margin: 40px 0 0;
+pre,h1, li {
+  text-align: left;
 }
-ul {
-  list-style-type: none;
-  padding: 0;
+.caja {
+  min-height: 75vh;
+  border: 1px solid black;
+  width: 65%;
 }
 li {
-  display: inline-block;
-  margin: 0 10px;
+  font-family: monospace;
+  list-style-type: none;
+  
 }
-a {
-  color: #42b983;
+
+h3 {
+  margin-top: 15px !important
 }
 </style>

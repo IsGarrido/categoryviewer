@@ -1,9 +1,12 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
   <HelloWorld msg="Welcome to Your Vue.js App"/>
 </template>
 
 <script>
+
+import "bootstrap";
+import "bootstrap/dist/css/bootstrap.min.css";
+
 import HelloWorld from './components/HelloWorld.vue'
 
 export default {
