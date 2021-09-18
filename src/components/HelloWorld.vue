@@ -24,6 +24,16 @@
             {{col}}
           </option>
         </select>
+
+        <select class="form-select" v-model="ChartType" @change="Redraw">
+          <option selected value="">Tipo Chart</option>
+          <option
+            v-for="(ctype, ctypeidx) in ChartTypes"
+            :value="ctype"
+            :key="ctypeidx">
+            {{ctype}}
+          </option>
+        </select>
         
         <template v-if="Ok">
           <h3>Valores M:</h3>
@@ -31,6 +41,10 @@
 
           <h3>Valores F:</h3>
           <ul><li v-for="(item, idx) in KeyedDataF" :key="idx">{{item.Key}} : {{item.Value}}</li></ul>
+
+          <h3>Diff M-F:</h3>
+          <ul><li v-for="(item, idx) in KeyedDiff" :key="idx"><span :style="{'color':KeyedDiffColors.find(x => x.Key === item.Key).Value}">{{item.Key}}</span> {{item.Value}}</li></ul>
+
         </template>
 
         <div class="form-check" v-if="Ok">
@@ -38,7 +52,15 @@
         <label class="form-check-label" for="flexCheckDefault">
           Ocultar [???]
         </label>
-      </div>
+        </div>
+
+
+        <div class="form-check" v-if="Ok">
+        <input class="form-check-input" type="checkbox" v-model="CargarDatosNegados" @change="Redraw">
+        <label class="form-check-label" for="flexCheckDefault">
+          Cargar frases Negadas
+        </label>
+        </div>
 
       </div>
 
@@ -50,6 +72,7 @@
           :labels="Labels"
           :datam="DataM"
           :dataf="DataF"
+          :type="ChartType"
           v-if="Ok && !Loading"
           ></Radial>
       </div>
@@ -59,7 +82,7 @@
 
   </div>
 
-  <div class="row">
+  <div class="row" style="margin-top: 75px">
     <div class="col" v-if="Ok"> {{ DataM }}</div>
     <div class="col" v-if="Ok"> {{ DataF }}</div>
     <div class="col">
@@ -93,37 +116,31 @@
 /* eslint-disable vue/no-unused-components */
 
 import DataDump from './../../../StereoES/result_fillmask/categorias_polaridad_visibilidad/run_result.json'
+import DataDumpNegada from './../../../StereoES/result_fillmask/categorias_polaridad_visibilidad_negadas/run_result.json'
 import Radial from './Radar.vue';
 
 export default {
   name: 'HelloWorld',
   components: { Radial },
   created(){
-    window.app = this;
-    window.$data = this.$data;
-    this.Models = this.Data.map( modelResult => modelResult["py/tuple"][0] );
-    this.Columns = Object.keys(this.Data[0]["py/tuple"][1]["[???]"])
-      .filter( x => !x.includes("py/") )
-      .filter( x => x !== "cat" );
-    this.Loading = false;
-
   },
   props: {
     msg: String
   },
   data(){
     return {
-      Data: DataDump,
-
-      Columns: [],
-      Models: [],
+      NormalData: DataDump,
+      NegativeData: DataDumpNegada,
 
       // Run
       ModelIdx: -1,
       ColumnKey: '',
+      ChartType: 'radar',
 
-      Loading: true,
+      Loading: false,
       RemoveQuestionMarks: true,
+      CargarDatosNegados: false,
+      ChartTypes: ['radar', 'bar', 'line', 'doughnut', 'polarArea']
     }
   }, 
   methods: {
@@ -140,11 +157,34 @@ export default {
 
   },
   computed: {
+    Data(){
+      let data = this.CargarDatosNegados ? this.NegativeData : this.NormalData;
+      return data;
+    },
     KeyedDataM(){
       return this.KVData(1);
     },
     KeyedDataF(){
       return this.KVData(2);
+    },
+    KeyedDiff(){
+      let items = Object.values(this.KeyedDataM);
+      let arr = [];
+      debugger;
+      for( let item of items ) {
+        arr.push( {Key: item.Key, Value: this.KeyedDataM.find(x => x.Key === item.Key).Value - this.KeyedDataF.find(x => x.Key === item.Key).Value});
+      }
+      return arr;
+    },
+    KeyedDiffColors(){
+      let items = Object.values(this.KeyedDiff);
+      let arr = [];
+
+      for( let item of items ) {
+        let color = item.Value > 0 ? 'blue' : 'darkmagenta';
+        arr.push( {Key: item.Key, Value: color} );
+      }
+      return arr;
     },
     DataM(){
       return this.KVData(1).map( x => x.Value);
@@ -165,7 +205,16 @@ export default {
       if(this.RemoveQuestionMarks)
       return labels.filter( x => x !== "[???]");
       return labels;
-    }
+    },
+    Models(){
+      return this.Data.map( modelResult => modelResult["py/tuple"][0] );
+    },
+    Columns(){
+      return Object.keys(this.Data[0]["py/tuple"][1]["[???]"])
+      .filter( x => !x.includes("py/") )
+      .filter( x => x !== "cat" );
+    },
+
   }
   
 }

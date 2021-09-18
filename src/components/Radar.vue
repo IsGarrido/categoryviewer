@@ -13,11 +13,11 @@ import Chart from 'chart.js/auto';
 
 
 export default {
-  props: ['labels', 'datam', 'dataf'],
+  props: ['labels', 'datam', 'dataf', 'type'],
   mounted() {
 
 const planetChartData = {
-  type: "radar",
+  type: this.type,
   data: {
     labels: this.labels,
     datasets: [
