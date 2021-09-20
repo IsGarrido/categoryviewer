@@ -1,9 +1,19 @@
 <template>
 
-  <div class="container">
+  <div class="container-fluid">
     <div class="row">
 
       <div class="col-2">
+
+        <select class="form-select" v-model="CurrentTestKey" @change="Redraw">
+          <option selected value="-1">Elegir prueba</option>
+          <option
+            v-for="(test, testIdx) in Tests"
+            :value="test.Key"
+            :key="testIdx">
+            {{test.Label}}
+          </option>
+        </select>
 
         <select class="form-select" v-model="ModelIdx" @change="Redraw">
           <option selected value="-1">Elegir modelo</option>
@@ -42,7 +52,7 @@
           <h3>Valores F:</h3>
           <ul><li v-for="(item, idx) in KeyedDataF" :key="idx">{{item.Key}} : {{item.Value}}</li></ul>
 
-          <h3>Diff M-F:</h3>
+          <h3>Diferencia M-F:</h3>
           <ul><li v-for="(item, idx) in KeyedDiff" :key="idx"><span :style="{'color':KeyedDiffColors.find(x => x.Key === item.Key).Value}">{{item.Key}}</span> {{item.Value}}</li></ul>
 
         </template>
@@ -55,12 +65,7 @@
         </div>
 
 
-        <div class="form-check" v-if="Ok">
-        <input class="form-check-input" type="checkbox" v-model="CargarDatosNegados" @change="Redraw">
-        <label class="form-check-label" for="flexCheckDefault">
-          Cargar frases Negadas
-        </label>
-        </div>
+
 
       </div>
 
@@ -115,8 +120,10 @@
 /* eslint-disable no-debugger */
 /* eslint-disable vue/no-unused-components */
 
-import DataDump from './../../../StereoES/result_fillmask/categorias_polaridad_visibilidad/run_result.json'
-import DataDumpNegada from './../../../StereoES/result_fillmask/categorias_polaridad_visibilidad_negadas/run_result.json'
+import TestOriginal from './../../../StereoES/result_fillmask/categorias_polaridad_visibilidad/run_result.json'
+import TestOriginalNegado from './../../../StereoES/result_fillmask/categorias_polaridad_visibilidad_negadas/run_result.json'
+import TestFoaFoa from './../../../StereoES/result_fillmask/categorias_polaridad_foa_foa/run_result.json'
+import TestYulia from './../../../StereoES/result_fillmask/categorias_yulia/run_result.json'
 import Radial from './Radar.vue';
 
 export default {
@@ -129,18 +136,42 @@ export default {
   },
   data(){
     return {
-      NormalData: DataDump,
-      NegativeData: DataDumpNegada,
-
-      // Run
+      // App state
+      Loading: false,
       ModelIdx: -1,
       ColumnKey: '',
       ChartType: 'radar',
-
-      Loading: false,
+      CurrentTestKey: 'Original',
       RemoveQuestionMarks: true,
-      CargarDatosNegados: false,
-      ChartTypes: ['radar', 'bar', 'line', 'doughnut', 'polarArea']
+
+      // Data
+      Dumps: {
+        Original: { 
+          Key: 'Original',
+          Label: 'Original VISIBLE/INVISIBLE POSITIVO/NEGATIVO',
+          Data: TestOriginal
+        },
+        OriginalNegado: { 
+          Key: 'Original Negado',
+          Label: 'OriginalNegado',
+          Data: TestOriginalNegado
+        },
+        // https://sci-hub.ru/10.1037//0022-3514.37.3.395
+
+        FoaFoa: {
+          Key: 'FoaFoa',
+          Label: 'Foa & Foa (Solo Invisibles/Traits)',
+          Data: TestFoaFoa
+        },
+        Yulia: {
+          Key: 'Yulia',
+          Label: 'Yulia',
+          Data: TestYulia
+        }
+      },
+
+      // Static
+      ChartTypes: ['radar', 'bar', 'line', 'doughnut', 'polarArea'],
     }
   }, 
   methods: {
@@ -158,8 +189,8 @@ export default {
   },
   computed: {
     Data(){
-      let data = this.CargarDatosNegados ? this.NegativeData : this.NormalData;
-      return data;
+      let key = this.CurrentTestKey;
+      return this.Dumps[key].Data;
     },
     KeyedDataM(){
       return this.KVData(1);
@@ -214,6 +245,9 @@ export default {
       .filter( x => !x.includes("py/") )
       .filter( x => x !== "cat" );
     },
+    Tests(){
+      return Object.values(this.Dumps);
+    }
 
   }
   
