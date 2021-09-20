@@ -70,7 +70,14 @@
       </div>
 
       <div class="col-10">
-      <h1 v-if="Ok">{{ CurrentModelName }}</h1>
+      <h1 v-if="Ok">{{ CurrentModelName }}
+        <small v-if="Dumps && Dumps[CurrentTestKey]?.Link">
+          <a :href="Dumps[CurrentTestKey].Link" target="_blank"> Paper</a>
+        </small>
+        <small v-if="Ok">
+          <a :href="CurrentModelLink" target="_blank"> Model </a>
+        </small>
+      </h1>
       <h1 v-else>Sin configurar</h1>
       <div class="caja">
         <Radial
@@ -246,12 +253,14 @@ export default {
         FoaFoa: {
           Key: 'FoaFoa',
           Label: 'Foa & Foa (Solo Invisibles/Traits)',
-          Data: TestFoaFoa
+          Data: TestFoaFoa,
+          Link: 'https://sci-hub.ru/10.1037//0022-3514.37.3.395'
         },
         Yulia: {
           Key: 'Yulia',
           Label: 'Yulia',
-          Data: TestYulia
+          Data: TestYulia,
+          Link: 'http://www.cs.cmu.edu/~ytsvetko/papers/adj-lrec14.pdf'
         }
       },
 
@@ -354,6 +363,9 @@ export default {
     },
     Tests(){
       return Object.values(this.Dumps);
+    },
+    CurrentModelLink(){
+      return 'https://huggingface.co/' + this.CurrentModelName;
     }
 
   }
