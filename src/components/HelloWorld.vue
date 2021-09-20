@@ -82,10 +82,85 @@
           ></Radial>
       </div>
 
-    </div>
+      </div>
+
 
 
   </div>
+
+  <hr>
+  <hr>
+  <hr>
+
+  <div class="row" style="margin-top: 75px">
+
+      <div class="col-md-2">
+
+        <select class="form-select" v-model="CurrentTestKey" @change="Redraw">
+          <option selected value="-1">Elegir prueba</option>
+          <option
+            v-for="(test, testIdx) in Tests"
+            :value="test.Key"
+            :key="testIdx">
+            {{test.Label}}
+          </option>
+        </select>
+
+        <select class="form-select" v-model="CurrentLabel" @change="Redraw">
+          <option selected value="">Elegir label</option>
+          <option
+            v-for="(label, labelIdx) in Labels"
+            :value="label"
+            :key="labelIdx">
+            {{label}}
+          </option>
+        </select>
+        <select class="form-select" v-model="TableShow" @change="Redraw">
+          <option selected value="">Elegir label</option>
+          <option
+            v-for="(ts, tsIdx) in TableShowTypes"
+            :value="ts"
+            :key="tsIdx">
+            {{ts}}
+          </option>
+        </select>
+
+        <div v-if="TableShow==='Experimental'">
+          <label> Corrección </label><input type="number" step="0.1" v-model="ExperimentalCorrection"> {{ ExperimentalCorrection }}
+        </div>
+      </div>
+
+      <div class="col-8">
+
+        <table v-if="CurrentLabel" class="table">
+          <tr>
+            <th></th>
+            <th v-for="(col, colIdx) in Columns" :key="colIdx">
+              {{ col }}
+            </th>
+          </tr>
+          <tr v-for="(model, mIdx) in Models" :key="mIdx">
+            <th>{{model}}</th>
+            <template v-for="(col, colIdx) in Columns" :key="colIdx">
+              <td v-if="TableShow === 'M'">{{ DataTable[0][mIdx][col] }}</td>
+              <td v-if="TableShow === 'F'">{{ DataTable[1][mIdx][col] }}</td>
+              <td v-if="TableShow === 'M-F'" :style="{'background-color': DataTable[0][mIdx][col] - DataTable[1][mIdx][col] > 0 ? 'aliceblue' : 'lightpink'}">
+                {{ DataTable[0][mIdx][col] - DataTable[1][mIdx][col] }}
+              </td>
+            <td v-if="TableShow === 'Experimental'" :style="{'background-color': DataTable[0][mIdx][col] - DataTable[1][mIdx][col] + ExperimentalCorrection > 0 ? 'aliceblue' : 'lightpink'}">
+                {{ DataTable[0][mIdx][col] - DataTable[1][mIdx][col] }}
+              </td>
+            </template>
+          </tr>
+        </table>
+
+      </div>
+
+  </div>
+  
+  <hr>
+  <hr>
+  <hr>
 
   <div class="row" style="margin-top: 75px">
     <div class="col" v-if="Ok"> {{ DataM }}</div>
@@ -113,6 +188,12 @@
   </div>
 
 </div>
+
+
+
+<pre>
+  {{ DataTable }}
+</pre>
 
 </template>
 
@@ -143,6 +224,10 @@ export default {
       ChartType: 'radar',
       CurrentTestKey: 'Original',
       RemoveQuestionMarks: true,
+      CurrentLabel: '',
+      TableShow: 'M',
+      TableShowTypes: ['M', 'F', 'M-F', 'Experimental'],
+      ExperimentalCorrection: 0,
 
       // Data
       Dumps: {
@@ -152,8 +237,8 @@ export default {
           Data: TestOriginal
         },
         OriginalNegado: { 
-          Key: 'Original Negado',
-          Label: 'OriginalNegado',
+          Label: 'Original Negado',
+          Key: 'OriginalNegado',
           Data: TestOriginalNegado
         },
         // https://sci-hub.ru/10.1037//0022-3514.37.3.395
@@ -177,7 +262,7 @@ export default {
   methods: {
     Redraw(){
       this.Loading = true;
-      setTimeout( () => this.Loading = false, 1);
+      setTimeout( () => this.Loading = false, 100);
     },
     KVData(idx){
       let modelm = this.Data[this.ModelIdx]["py/tuple"][idx];
@@ -191,6 +276,28 @@ export default {
     Data(){
       let key = this.CurrentTestKey;
       return this.Dumps[key].Data;
+    },
+    DataTable(){
+      let tableM = [];
+      let tableF = [];
+      let data = this.Data;
+      // let models = this.Models;
+
+      // table.push(" ");
+      // for( let model in model)
+      //   table.push(model);
+
+      for( let i = 0; i < data.length; i++){
+        let m = this.Data[i]["py/tuple"][1];
+        let f = this.Data[i]["py/tuple"][2];
+        tableM.push(...Object.values(m).filter( xrow => xrow.cat === this.CurrentLabel ));
+        tableF.push(...Object.values(f).filter( xrow => xrow.cat === this.CurrentLabel ));
+
+        // tableM.push(...Object.values(m).map( row => Object.values(row).splice(1) ).filter( xrow => xrow[0] === this.CurrentLabel ));
+        // tableF.push(...Object.values(f).map( row => Object.values(row).splice(1) ).filter( xrow => xrow[0] === this.CurrentLabel ));
+      }
+
+      return [tableM, tableF ];
     },
     KeyedDataM(){
       return this.KVData(1);
