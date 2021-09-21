@@ -17,7 +17,7 @@ export default {
   mounted() {
 
 const planetChartData = {
-  type: this.type,
+  type: this.type || 'radar',
   data: {
     labels: this.labels,
     datasets: [
