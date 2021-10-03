@@ -96,8 +96,14 @@
   </div>
 
   <hr>
-  <hr>
-  <hr>
+
+  <div class="row">
+    <div class="col-md-12">
+      <span v-for="(col, cidx) in Columns" :key="cidx" @click="ColumnMeta[col].Hide = !ColumnMeta[col].Hide" :style="{'background-color' : ColumnMeta[col].Hide ? 'lightgrey' : 'lightblue'}">
+        {{ col }}
+      </span>
+    </div>
+  </div>
 
   <div class="row" style="margin-top: 75px">
 
@@ -212,6 +218,7 @@ import TestOriginal from './../../../StereoES/result_fillmask/categorias_polarid
 import TestOriginalNegado from './../../../StereoES/result_fillmask/categorias_polaridad_visibilidad_negadas/run_result.json'
 import TestFoaFoa from './../../../StereoES/result_fillmask/categorias_polaridad_foa_foa/run_result.json'
 import TestYulia from './../../../StereoES/result_fillmask/categorias_yulia/run_result.json'
+import TestProfesiones from './../../../StereoES/result_fillmask_profesiones/base/run_result.json'
 import Radial from './Radar.vue';
 
 export default {
@@ -235,6 +242,8 @@ export default {
       TableShow: 'M',
       TableShowTypes: ['M', 'F', 'M-F', 'Experimental'],
       ExperimentalCorrection: 0,
+
+      ColumnMeta: {},
 
       // Data
       Dumps: {
@@ -261,6 +270,13 @@ export default {
           Label: 'Yulia',
           Data: TestYulia,
           Link: 'http://www.cs.cmu.edu/~ytsvetko/papers/adj-lrec14.pdf'
+        },
+        Profesiones: {
+          Key: 'Profesiones',
+          Label: 'Profesiones',
+          Data: TestProfesiones,
+          Link: 'https://www.cnae.com.es/lista-actividades.php',
+          DataLink: 'https://www.ine.es/jaxiT3/Tabla.htm?t=4128'
         }
       },
 
@@ -360,6 +376,9 @@ export default {
       return Object.keys(this.Data[0]["py/tuple"][1]["[???]"])
       .filter( x => !x.includes("py/") )
       .filter( x => x !== "cat" );
+    },
+    VisibleColumns(){
+      return this.Columns.filter( col => this.ColumnMeta[col].Hide === true);
     },
     Tests(){
       return Object.values(this.Dumps);
