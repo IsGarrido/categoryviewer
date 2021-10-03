@@ -235,6 +235,9 @@
       <textarea v-model="LatexContent"></textarea>
     </div>
 
+  <div class="row" v-show="Tabs[5].Visible">
+    <qty-line-chart></qty-line-chart>
+  </div>
 
 
 
@@ -254,10 +257,11 @@ import TestFoaFoa from './../../../StereoES/result_fillmask/categorias_polaridad
 import TestYulia from './../../../StereoES/result_fillmask/categorias_yulia/run_result.json'
 import TestProfesiones from './../../../StereoES/result_fillmask_profesiones/base/run_result.json'
 import Radial from './Radar.vue';
+import QtyLineChart from './Chart/QtyLineChart.vue';
 
 export default {
   name: 'HelloWorld',
-  components: { Radial },
+  components: { Radial, QtyLineChart },
   created(){
   },
   props: {
@@ -304,6 +308,10 @@ export default {
         {
           Label: "Latex",
           Visible: false
+        },
+        {
+          Label: "Size",
+          Visible: false,
         }
       ],
 
