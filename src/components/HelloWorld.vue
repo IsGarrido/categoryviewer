@@ -190,7 +190,7 @@
         {{ DataM }}
       </div>
 
-      <div class="col" v-if="Ok">
+      <div class="coenable-prc" v-if="Ok">
         {{ DataF }}
       </div>
 
@@ -236,7 +236,15 @@
     </div>
 
   <div class="row" v-show="Tabs[5].Visible">
-    <qty-line-chart></qty-line-chart>
+    <div class="col-3">
+      <qty-line-chart :EnableWordCount="true" named="wc"></qty-line-chart>
+    </div>
+    <div class="col-4">
+      <qty-line-chart :EnableTotalDiff="true" named="td"></qty-line-chart>
+    </div>
+    <div class="col-4">
+      <qty-line-chart :EnablePrc="true" named="prc"></qty-line-chart>
+    </div>
   </div>
 
 
