@@ -247,6 +247,10 @@
     </div>
   </div>
 
+  <div class="row" v-show="Tabs[6].Visible">
+      <tabla-adjetivos></tabla-adjetivos>
+  </div>
+
 
 
 </div>
@@ -266,10 +270,11 @@ import TestYulia from './../../../StereoES/result_fillmask/categorias_yulia/run_
 import TestProfesiones from './../../../StereoES/result_fillmask_profesiones/base/run_result.json'
 import Radial from './Radar.vue';
 import QtyLineChart from './Chart/QtyLineChart.vue';
+import TablaAdjetivos from './TablaAdjetivos.vue'
 
 export default {
   name: 'HelloWorld',
-  components: { Radial, QtyLineChart },
+  components: { Radial, QtyLineChart, TablaAdjetivos },
   created(){
   },
   props: {
@@ -319,6 +324,10 @@ export default {
         },
         {
           Label: "Size",
+          Visible: false,
+        },
+        {
+          Label: "Adjective Stats",
           Visible: false,
         }
       ],
