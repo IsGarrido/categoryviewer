@@ -250,6 +250,10 @@
   <div class="row" v-show="Tabs[6].Visible">
       <tabla-adjetivos></tabla-adjetivos>
   </div>
+  
+    <div class="row" v-show="Tabs[7].Visible">
+      <explorador-predicciones></explorador-predicciones>
+  </div>
 
 
 
@@ -271,10 +275,11 @@ import TestProfesiones from './../../../StereoES/result_fillmask_profesiones/bas
 import Radial from './Radar.vue';
 import QtyLineChart from './Chart/QtyLineChart.vue';
 import TablaAdjetivos from './TablaAdjetivos.vue'
+import ExploradorPredicciones from './ExploradorPredicciones.vue'
 
 export default {
   name: 'HelloWorld',
-  components: { Radial, QtyLineChart, TablaAdjetivos },
+  components: { Radial, QtyLineChart, TablaAdjetivos, ExploradorPredicciones },
   created(){
   },
   props: {
@@ -328,6 +333,10 @@ export default {
         },
         {
           Label: "Adjective Stats",
+          Visible: false,
+        },
+        {
+          Label: "Explorador",
           Visible: false,
         }
       ],
