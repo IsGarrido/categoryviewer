@@ -70,6 +70,7 @@ export default {
         this.Columns = [...tCols, ...this.Columns];
 
         this.Types.find(x => x.Name === "all" ).Enabled = false;
+        this.Types.find(x => x.Name === "global" ).Enabled = false;
         this.SortBy = this.Columns[1].Name;
     },
     data(){
