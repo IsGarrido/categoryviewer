@@ -153,7 +153,10 @@
               <td v-if="TableShow === 'M'">{{ DataTable[0][mIdx][col] }}</td>
               <td v-if="TableShow === 'F'">{{ DataTable[1][mIdx][col] }}</td>
               <td v-if="TableShow === 'M-F'" :style="{'background-color': DataTable[0][mIdx][col] - DataTable[1][mIdx][col] > 0 ? 'aliceblue' : 'lightpink'}">
-                {{ DataTable[0][mIdx][col] - DataTable[1][mIdx][col] }}
+                {{ Cut(DataTable[0][mIdx][col] - DataTable[1][mIdx][col] )}}
+              </td>
+              <td v-if="TableShow === 'M-F Heat'" :style="StyleHeatmap(col, DataTable[0][mIdx][col] - DataTable[1][mIdx][col])">
+                {{ Cut(DataTable[0][mIdx][col] - DataTable[1][mIdx][col] )}} 
               </td>
               <td v-if="TableShow === 'M/F'" :style="{'background-color': DataTable[0][mIdx][col] - DataTable[1][mIdx][col] > 0 ? 'aliceblue' : 'lightpink'}">
                 {{ DataTable[0][mIdx][col] / DataTable[1][mIdx][col] }}
@@ -167,8 +170,19 @@
               </td>
             </template>
           </tr>
+          <tr>
+            <th>Latex Count</th>
+              <template v-for="(col, colIdx) in VisibleColumns" :key="colIdx">
+                
+                <td>{{ SummaryRow(col) }}</td>
+              </template>
+          </tr>
 
         </table>
+
+        <div v-if="TableShow === 'M-F Heat'">
+          {{ TableMin }} - {{ TableMax }}
+        </div>
 
       </div>
 
@@ -281,8 +295,12 @@ export default {
   name: 'HelloWorld',
   components: { Radial, QtyLineChart, TablaAdjetivos, ExploradorPredicciones },
   created(){
+    this.Columns.forEach( col => this.ColumnMeta[col] = { Hide: true} );
+    this.ColumnMeta["prc_points"].Hide = false;
+    this.ColumnMeta["prc_score"].Hide = false;
+    
   },
-  props: {
+  props: { 
     msg: String
   },
   data(){
@@ -301,7 +319,7 @@ export default {
 
       // Tab - Table
       TableShow: 'M',
-      TableShowTypes: ['M', 'F', 'M-F','M/F', 'Experimental', 'Summary'],
+      TableShowTypes: ['M', 'F', 'M-F', 'M-F Heat', 'M/F', 'Experimental', 'Summary'],
       ExperimentalCorrection: 0,
 
 
@@ -409,7 +427,33 @@ export default {
       if(!this.ColumnMeta[col]) this.ColumnMeta[col] = {};
       this.ColumnMeta[col].Hide = !this.ColumnMeta[col].Hide
     },
+    Cut(item){
+      let parts = (item+"").split(".");
+      return parts[0] + "." + parts[1].slice(0,2);
+      //return (item + "")
+  },
+
     AsLatex(){},
+    StyleHeatmap(column, val){
+      return {
+        'background-color': this.HeatMap(column, val),
+      };
+    },
+    HeatMap(column, val){
+      debugger;
+      let normVal = this.Normalize(val, this.TableMin[column], this.TableMax[column]);
+      let h = (1.0 - normVal) * 240
+      return "hsl(" + h + ", 100%, 50%)";
+    },
+    CustomHeatMap(column, val){
+      let normVal = this.Normalize(val, this.TableMin[column], this.TableMax[column]);
+      let h = normVal * 235;
+      return "rgb(" + h + ", 0, 0)";
+
+    },
+    Normalize(val, min, max){
+      return (val - min) / (max - min);
+    },
 //       let cols
 //       let template = `
 // \\begin{center}
@@ -422,7 +466,18 @@ export default {
 // `;
 //     }
 
+  SummaryRow(col){
+    let res = this.Models.map( (model, mIdx) => {
+      let val = this.DataTable[0][mIdx][col] - this.DataTable[1][mIdx][col];
+      if(val === 0) return '';
+      let tag = val > 0 ? 'Masculino' : 'Femenino';
+      return tag;
+    }).reduce((cnt, cur) => (cnt[cur] = cnt[cur] + 1 || 1, cnt), {});
+    let latex = this.CurrentLabel + ' & ' + (res['Masculino'] ?? 0) + ' & ' + ( res['Femenino'] ?? 0) + '  \\\\';
+    return latex.replace("[","").replace("]","");
+  }
   },
+  
   computed: {
     Data(){
       let key = this.CurrentTestKey;
@@ -459,7 +514,7 @@ export default {
     KeyedDiff(){
       let items = Object.values(this.KeyedDataM);
       let arr = [];
-      debugger;
+
       for( let item of items ) {
         arr.push( {Key: item.Key, Value: this.KeyedDataM.find(x => x.Key === item.Key).Value - this.KeyedDataF.find(x => x.Key === item.Key).Value});
       }
@@ -511,7 +566,34 @@ export default {
     },
     CurrentModelLink(){
       return 'https://huggingface.co/' + this.CurrentModelName;
-    }
+    },
+    TableMax(){
+      let t = this;
+      let map = {};
+      t.VisibleColumns.forEach( column => {
+        let values = this.Models.map( (model, mIdx) => this.DataTable[0][mIdx][column] - this.DataTable[1][mIdx][column] );
+        map[column] = Math.max(...values);
+      });
+      return map;
+    },
+    TableMin(){
+      let t = this;
+      let map = {};
+      t.VisibleColumns.forEach( column => {
+        let values = this.Models.map( (model, mIdx) => this.DataTable[0][mIdx][column] - this.DataTable[1][mIdx][column] );
+        map[column] = Math.min(...values);
+      });
+      return map;
+    },
+    // TableMin(){
+    //   let t = this;
+
+    //   return t.VisibleColumns.map( column => {
+    //     let values = this.Models.map( (model, mIdx) => this.DataTable[0][mIdx][column] - this.DataTable[1][mIdx][column] );
+    //     return {[column]: Math.min(...values)}
+    //   });
+    // },
+
 
   }
   

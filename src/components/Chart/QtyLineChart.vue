@@ -118,7 +118,6 @@ export default {
     }
   },
   mounted() {
-    debugger;
     let datasets = [];
     if(this.EnableWordCount){
       datasets = [
