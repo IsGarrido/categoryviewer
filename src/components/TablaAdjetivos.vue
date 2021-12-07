@@ -57,7 +57,7 @@
 </template>
 
 <script>
-import stats from './../../../StereoES/result_data/FillMask/descriptive_stats.json'
+import stats from './../../../StereoES/result_data/FillMask/stats_by_model.json'
 
 export default {
     created(){
@@ -66,7 +66,7 @@ export default {
         this.Models = model_names.map( x => { return { Name: x, Enabled: true } });
         this.Types = type_names.map( x => { return { Name: x, Enabled: true } });
         this.Columns = Object.keys(this.Stats[0]).map( x => { return { Name: x, Enabled: true } });
-        let tCols = [this.Columns.pop(), this.Columns.pop()];  
+        let tCols = [this.Columns.pop(), this.Columns.pop()].reverse();  
         this.Columns = [...tCols, ...this.Columns];
 
         this.Types.find(x => x.Name === "all" ).Enabled = false;

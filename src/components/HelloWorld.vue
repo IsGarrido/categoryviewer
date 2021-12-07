@@ -4,7 +4,7 @@
 
     <ul class="nav nav-tabs">
       <li class="nav-item" v-for="(Tab, tidx) in Tabs" :key="tidx">
-        <a class="nav-link" :class="{'active' : Tab.Visible }" @click="SelectTab(Tab.Label)">{{ Tab.Label }}</a>
+        <a class="nav-link" v-if="!Tab.Hide" :class="{'active' : Tab.Visible }" @click="SelectTab(Tab.Label)">{{ Tab.Label }}</a>
       </li>
     </ul>
 
@@ -147,25 +147,25 @@
               {{ col }}
             </th>
           </tr>
-          <tr v-for="(model, mIdx) in Models" :key="mIdx">
-            <th style="text-align: right;">{{model}} {{mIdx+1}}</th>
+          <tr v-for="(model, mIdx) in VisibleModels" :key="mIdx">
+            <th style="text-align: right;">{{model}} <span v-show="MostrarX" @click="ToggleModel(model)">❌</span></th>
             <template v-for="(col, colIdx) in VisibleColumns" :key="colIdx">
-              <td v-if="TableShow === 'M'">{{ DataTable[0][mIdx][col] }}</td>
-              <td v-if="TableShow === 'F'">{{ DataTable[1][mIdx][col] }}</td>
-              <td v-if="TableShow === 'M-F'" :style="{'background-color': DataTable[0][mIdx][col] - DataTable[1][mIdx][col] > 0 ? 'aliceblue' : 'lightpink'}">
-                {{ Cut(DataTable[0][mIdx][col] - DataTable[1][mIdx][col] )}}
+              <td v-if="TableShow === 'M'">{{ DataTable[0][Mindex(model)][col] }}</td>
+              <td v-if="TableShow === 'F'">{{ DataTable[1][Mindex(model)][col] }}</td>
+              <td v-if="TableShow === 'M-F'" :style="{'background-color': DataTable[0][Mindex(model)][col] - DataTable[1][Mindex(model)][col] > 0 ? 'aliceblue' : 'lightpink'}">
+                {{ Cut(DataTable[0][Mindex(model)][col] - DataTable[1][Mindex(model)][col] )}}
               </td>
-              <td v-if="TableShow === 'M-F Heat'" :style="StyleHeatmap(col, DataTable[0][mIdx][col] - DataTable[1][mIdx][col])">
-                {{ Cut(DataTable[0][mIdx][col] - DataTable[1][mIdx][col] )}} 
+              <td v-if="TableShow === 'M-F Heat'" :style="StyleHeatmap(col, DataTable[0][Mindex(model)][col] - DataTable[1][Mindex(model)][col])">
+                {{ Cut(DataTable[0][Mindex(model)][col] - DataTable[1][Mindex(model)][col] )}} 
               </td>
-              <td v-if="TableShow === 'M/F'" :style="{'background-color': DataTable[0][mIdx][col] - DataTable[1][mIdx][col] > 0 ? 'aliceblue' : 'lightpink'}">
-                {{ DataTable[0][mIdx][col] / DataTable[1][mIdx][col] }}
+              <td v-if="TableShow === 'M/F'" :style="{'background-color': DataTable[0][Mindex(model)][col] - DataTable[1][Mindex(model)][col] > 0 ? 'aliceblue' : 'lightpink'}">
+                {{ DataTable[0][Mindex(model)][col] / DataTable[1][Mindex(model)][col] }}
               </td>
-              <td v-if="TableShow === 'Experimental'" :style="{'background-color': DataTable[0][mIdx][col] - DataTable[1][mIdx][col] + ExperimentalCorrection > 0 ? 'aliceblue' : 'lightpink'}">
-                  {{ DataTable[0][mIdx][col] - DataTable[1][mIdx][col] }}
+              <td v-if="TableShow === 'Experimental'" :style="{'background-color': DataTable[0][Mindex(model)][col] - DataTable[1][Mindex(model)][col] + ExperimentalCorrection > 0 ? 'aliceblue' : 'lightpink'}">
+                  {{ DataTable[0][Mindex(model)][col] - DataTable[1][Mindex(model)][col] }}
               </td>
               <td v-if="TableShow === 'Summary'">
-                <span v-if="DataTable[0][mIdx][col] - DataTable[1][mIdx][col] > 0">Masculino</span>
+                <span v-if="DataTable[0][Mindex(model)][col] - DataTable[1][Mindex(model)][col] > 0">Masculino</span>
                 <span v-else>Femenino</span>
               </td>
             </template>
@@ -186,15 +186,40 @@
 
       </div>
 
-    </div>
+      <hr>
+      <div class="col-md-12">
+        <span @click="MostrarX = !MostrarX">Mostrar ❌ {{ MostrarX }}</span>
+      </div>
+        <div class="col-md-12">
+          <h3>Configurar columnas</h3>
+          <span v-for="(col, cidx) in Columns" :key="cidx" @click="ToggleColumn(col)" :style="{'background-color' : ColumnMeta[col]?.Hide ? 'lightgrey' : 'lightblue'}" style="margin-right: 10px">
+            {{ col }}
+          </span>
+        </div>
+
+        <div class="col-md-12">
+          <h3>Configurar <small>(Todos <span @click="ToggleAllModels(false)">Activos</span>/<span @click="ToggleAllModels(true)">Ocultos</span>)</small></h3>
+          <span v-for="(model, midx) in Models" :key="midx" @click="ToggleModel(model)" :style="{'background-color' : ModelMeta[model]?.Hide ? 'lightgrey' : 'lightblue'}" style="margin-right: 10px">
+            {{ model }}
+          </span>
+        </div>
+      </div>
 
     <div class="row" v-show="Tabs[2].Visible">
 
-      <div class="col-md-12">
+      <!-- <div class="col-md-12">
+        <h3>Configurar columnas</h3>
         <span v-for="(col, cidx) in Columns" :key="cidx" @click="ToggleColumn(col)" :style="{'background-color' : ColumnMeta[col]?.Hide ? 'lightgrey' : 'lightblue'}" style="margin-right: 10px">
           {{ col }}
         </span>
       </div>
+
+      <div class="col-md-12">
+        <h3>Configurar modelos</h3>
+        <span v-for="(model, midx) in Models" :key="midx" @click="ToggleModel(model)" :style="{'background-color' : ColumnMeta[model]?.Hide ? 'lightgrey' : 'lightblue'}" style="margin-right: 10px">
+          {{ model }}
+        </span>
+      </div> -->
 
     </div>
 
@@ -285,7 +310,7 @@ import TestOriginal from './../../../StereoES/result_fillmask/categorias_polarid
 import TestOriginalNegado from './../../../StereoES/result_fillmask/categorias_polaridad_visibilidad_negadas/run_result.json'
 import TestFoaFoa from './../../../StereoES/result_fillmask/categorias_polaridad_foa_foa/run_result.json'
 import TestYulia from './../../../StereoES/result_fillmask/categorias_yulia/run_result.json'
-import TestProfesiones from './../../../StereoES/result_fillmask_profesiones/base/run_result.json'
+// import TestProfesiones from './../../../StereoES/result_fillmask_profesiones/base/run_result.json'
 import Radial from './Radar.vue';
 import QtyLineChart from './Chart/QtyLineChart.vue';
 import TablaAdjetivos from './TablaAdjetivos.vue'
@@ -296,8 +321,9 @@ export default {
   components: { Radial, QtyLineChart, TablaAdjetivos, ExploradorPredicciones },
   created(){
     this.Columns.forEach( col => this.ColumnMeta[col] = { Hide: true} );
-    this.ColumnMeta["prc_points"].Hide = false;
-    this.ColumnMeta["prc_score"].Hide = false;
+    this.Models.forEach( (col, idx) => this.ModelMeta[col] = { Hide: false, Index: idx} );
+    this.ColumnMeta["prc_retrieval_status_value"].Hide = false;
+    this.ColumnMeta["prc_probability"].Hide = false;
     
   },
   props: { 
@@ -316,6 +342,8 @@ export default {
 
       // Tab - Config
       ColumnMeta: {},
+      ModelMeta: {},
+      MostrarX: true,
 
       // Tab - Table
       TableShow: 'M',
@@ -336,6 +364,7 @@ export default {
         {
           Label: "Config",
           Visible: false,
+          Hide: true,
         },
         {
           Label: "Debug",
@@ -343,7 +372,8 @@ export default {
         },
         {
           Label: "Latex",
-          Visible: false
+          Visible: false,
+          Hide: true,
         },
         {
           Label: "Size",
@@ -388,13 +418,13 @@ export default {
           Data: TestYulia,
           Link: 'http://www.cs.cmu.edu/~ytsvetko/papers/adj-lrec14.pdf'
         },
-        Profesiones: {
-          Key: 'Profesiones',
-          Label: 'Profesiones',
-          Data: TestProfesiones,
-          Link: 'https://www.cnae.com.es/lista-actividades.php',
-          DataLink: 'https://www.ine.es/jaxiT3/Tabla.htm?t=4128'
-        }
+        // Profesiones: {
+        //   Key: 'Profesiones',
+        //   Label: 'Profesiones',
+        //   Data: TestProfesiones,
+        //   Link: 'https://www.cnae.com.es/lista-actividades.php',
+        //   DataLink: 'https://www.ine.es/jaxiT3/Tabla.htm?t=4128'
+        // }
       },
 
       // Static
@@ -427,29 +457,53 @@ export default {
       if(!this.ColumnMeta[col]) this.ColumnMeta[col] = {};
       this.ColumnMeta[col].Hide = !this.ColumnMeta[col].Hide
     },
+    ToggleModel(model){
+      if(!this.ModelMeta[model]) this.ModelMeta[model] = {};
+      this.ModelMeta[model].Hide = !this.ModelMeta[model].Hide
+    },
+    ToggleAllModels(hidden){
+      Object.keys(this.ModelMeta).forEach( (meta) => this.ModelMeta[meta].Hide = hidden );
+    },
     Cut(item){
-      let parts = (item+"").split(".");
-      return parts[0] + "." + parts[1].slice(0,2);
-      //return (item + "")
-  },
+      item = item+"";
+      if(!item.includes(".")) return item;
 
+      let partesExponente = item.split("e");
+      let exponente = "";
+      if(partesExponente.length > 1){
+        item = partesExponente[0];
+        exponente = partesExponente[1];
+      }
+      debugger;
+      let parts = item.split(".");
+      let res = parts[0] + "." + parts[1].slice(0,2);
+      if(exponente !== "")
+        res = res + "e" + exponente;
+      return res;
+    },
     AsLatex(){},
     StyleHeatmap(column, val){
       return {
-        'background-color': this.HeatMap(column, val),
+        'background-color': this.CustomHeatMap(column, val),
+        'color': val > 0 ? "white" : "black",
       };
     },
     HeatMap(column, val){
-      debugger;
       let normVal = this.Normalize(val, this.TableMin[column], this.TableMax[column]);
       let h = (1.0 - normVal) * 240
       return "hsl(" + h + ", 100%, 50%)";
     },
     CustomHeatMap(column, val){
-      let normVal = this.Normalize(val, this.TableMin[column], this.TableMax[column]);
-      let h = normVal * 235;
-      return "rgb(" + h + ", 0, 0)";
-
+      if( val < 0 ){
+        let normVal = this.Normalize(val, this.TableMin[column], 0);
+        let h = (normVal * 150);
+        return "rgb(255,"+ h + "," + h+")";
+      } else {
+        let normVal = this.Normalize(val, 0, this.TableMax[column]);
+        let h = (1 - normVal )* 150;
+        return "rgb("+h+","+h+",255)";
+      }
+      
     },
     Normalize(val, min, max){
       return (val - min) / (max - min);
@@ -475,6 +529,9 @@ export default {
     }).reduce((cnt, cur) => (cnt[cur] = cnt[cur] + 1 || 1, cnt), {});
     let latex = this.CurrentLabel + ' & ' + (res['Masculino'] ?? 0) + ' & ' + ( res['Femenino'] ?? 0) + '  \\\\';
     return latex.replace("[","").replace("]","");
+  },
+  Mindex(model){
+    return this.ModelMeta[model].Index;
   }
   },
   
@@ -561,6 +618,9 @@ export default {
     VisibleColumns(){
       return this.Columns.filter( col => this.ColumnMeta[col]?.Hide !== true);
     },
+    VisibleModels(){
+      return this.Models.filter( col => this.ModelMeta[col]?.Hide !== true);
+    },
     Tests(){
       return Object.values(this.Dumps);
     },
@@ -571,7 +631,7 @@ export default {
       let t = this;
       let map = {};
       t.VisibleColumns.forEach( column => {
-        let values = this.Models.map( (model, mIdx) => this.DataTable[0][mIdx][column] - this.DataTable[1][mIdx][column] );
+        let values = this.VisibleModels.map( (model) => this.DataTable[0][this.Mindex(model)][column] - this.DataTable[1][this.Mindex(model)][column] );
         map[column] = Math.max(...values);
       });
       return map;
@@ -580,7 +640,7 @@ export default {
       let t = this;
       let map = {};
       t.VisibleColumns.forEach( column => {
-        let values = this.Models.map( (model, mIdx) => this.DataTable[0][mIdx][column] - this.DataTable[1][mIdx][column] );
+        let values = this.VisibleModels.map( (model) => this.DataTable[0][this.Mindex(model)][column] - this.DataTable[1][this.Mindex(model)][column] );
         map[column] = Math.min(...values);
       });
       return map;
