@@ -275,19 +275,24 @@
     </div>
 
   <div class="row" v-show="Tabs[5].Visible">
-    <div class="col-3">
-      <qty-line-chart :EnableWordCount="true" named="wc"></qty-line-chart>
-    </div>
-    <div class="col-4">
-      <qty-line-chart :EnableTotalDiff="true" named="td"></qty-line-chart>
-    </div>
-    <div class="col-4">
-      <qty-line-chart :EnablePrc="true" named="prc"></qty-line-chart>
-    </div>
+
   </div>
 
   <div class="row" v-show="Tabs[6].Visible">
       <tabla-adjetivos></tabla-adjetivos>
+
+      <hr>
+
+      <div class="col-3">
+        <qty-line-chart :EnableWordCount="true" named="wc"></qty-line-chart>
+      </div>
+      <div class="col-4">
+        <qty-line-chart :EnableTotalDiff="true" named="td"></qty-line-chart>
+      </div>
+      <div class="col-4">
+        <qty-line-chart :EnablePrc="true" named="prc"></qty-line-chart>
+      </div>
+
   </div>
   
     <div class="row" v-show="Tabs[7].Visible">
@@ -378,6 +383,7 @@ export default {
         {
           Label: "Size",
           Visible: false,
+          Hide: true,
         },
         {
           Label: "Adjective Stats",

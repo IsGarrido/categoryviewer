@@ -66,11 +66,11 @@ export default {
         this.Models = model_names.map( x => { return { Name: x, Enabled: true } });
         this.Types = type_names.map( x => { return { Name: x, Enabled: true } });
         this.Columns = Object.keys(this.Stats[0]).map( x => { return { Name: x, Enabled: true } });
-        let tCols = [this.Columns.pop(), this.Columns.pop()].reverse();  
-        this.Columns = [...tCols, ...this.Columns];
+        this.Columns.shift();  
+        //this.Columns = [...tCols, ...this.Columns];
 
-        this.Types.find(x => x.Name === "all" ).Enabled = false;
-        this.Types.find(x => x.Name === "global" ).Enabled = false;
+        //this.Types.find(x => x.Name === "all" ).Enabled = false;
+        //this.Types.find(x => x.Name === "global" ).Enabled = false;
         this.SortBy = this.Columns[1].Name;
     },
     data(){
