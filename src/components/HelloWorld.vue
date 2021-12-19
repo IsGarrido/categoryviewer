@@ -489,9 +489,17 @@ export default {
     },
     AsLatex(){},
     StyleHeatmap(column, val){
+      let heatmapResult = this.CustomHeatMap(column, val);
+      let heatMap = heatmapResult[0];
+      let colorValue = heatmapResult[1];
+
+      let color = "black";
+      if(val > 0 && colorValue < 150)
+        color = "white";
+
       return {
-        'background-color': this.CustomHeatMap(column, val),
-        'color': val > 0 ? "white" : "black",
+        'background-color': heatMap,
+        color,
       };
     },
     HeatMap(column, val){
@@ -502,12 +510,12 @@ export default {
     CustomHeatMap(column, val){
       if( val < 0 ){
         let normVal = this.Normalize(val, this.TableMin[column], 0);
-        let h = (normVal * 150);
-        return "rgb(255,"+ h + "," + h+")";
+        let h = (normVal * 250);
+        return ["rgb(255,"+ h + "," + h+")", h];
       } else {
         let normVal = this.Normalize(val, 0, this.TableMax[column]);
-        let h = (1 - normVal )* 150;
-        return "rgb("+h+","+h+",255)";
+        let h = (1 - normVal )* 250;
+        return ["rgb("+h+","+h+",255)", h];
       }
       
     },
