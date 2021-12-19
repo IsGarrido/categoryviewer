@@ -69,7 +69,7 @@
       <div class="col-10">
         <h1 v-if="Ok">
           {{ CurrentModelName }}
-          <small v-if="Dumps && Dumps[CurrentTestKey]?.Link">
+          <small v-if="Dumps && Dumps[CurrentTestKey]?.Link" class="mr5">
             <a :href="Dumps[CurrentTestKey].Link" target="_blank">Paper</a>
           </small>
           <small v-if="Ok">
@@ -89,7 +89,7 @@
       </div>
     </div>
 
-    <div class="row" v-show="Tabs[1].Visible">
+    <div class="row" v-show="Tabs[1].Visible" v-if="!RedrawingTable">
 
       <div class="col-12">
         <div class="row mb5">
@@ -141,27 +141,28 @@
                 <span v-show="MostrarX" @click="ToggleModel(model)">❌</span>
               </th>
               <template v-for="(col, colIdx) in VisibleColumns" :key="colIdx">
-                <td v-if="TableShow === 'M'">{{ DataTable[0][Mindex(model)][col] }}</td>
-                <td v-if="TableShow === 'F'">{{ DataTable[1][Mindex(model)][col] }}</td>
+                <td v-if="TableShow === 'M'">{{ GetValueMale(model, col) }}</td>
+                <td v-if="TableShow === 'F'">{{ GetValueFemale(model, col) }}</td>
                 <td
                   v-if="TableShow === 'M-F'"
-                  :style="{ 'background-color': DataTable[0][Mindex(model)][col] - DataTable[1][Mindex(model)][col] > 0 ? 'aliceblue' : 'lightpink' }"
-                >{{ Cut(DataTable[0][Mindex(model)][col] - DataTable[1][Mindex(model)][col]) }}</td>
+                  :style="{ 'background-color': GetValueMale(model, col) - GetValueFemale(model, col) > 0 ? 'aliceblue' : 'lightpink' }"
+                >{{ Cut(GetValueMale(model, col) - GetValueFemale(model, col))  }}</td>
                 <td
                   v-if="TableShow === 'M-F Heat'"
-                  :style="StyleHeatmap(col, DataTable[0][Mindex(model)][col] - DataTable[1][Mindex(model)][col])"
-                >{{ Cut(DataTable[0][Mindex(model)][col] - DataTable[1][Mindex(model)][col]) }}</td>
+                  :style="StyleHeatmap(col, GetValueMale(model, col) - GetValueFemale(model, col))"
+                  class="br1"
+                >{{ Cut( GetValueMale(model, col) - GetValueFemale(model, col) ) }}</td>
                 <td
                   v-if="TableShow === 'M/F'"
-                  :style="{ 'background-color': DataTable[0][Mindex(model)][col] - DataTable[1][Mindex(model)][col] > 0 ? 'aliceblue' : 'lightpink' }"
-                >{{ DataTable[0][Mindex(model)][col] / DataTable[1][Mindex(model)][col] }}</td>
+                  :style="{ 'background-color': GetValueMale(model, col) - GetValueFemale(model, col) > 0 ? 'aliceblue' : 'lightpink' }"
+                >{{ GetValueMale(model, col) / GetValueFemale(model, col) }}</td>
                 <td
                   v-if="TableShow === 'Experimental'"
-                  :style="{ 'background-color': DataTable[0][Mindex(model)][col] - DataTable[1][Mindex(model)][col] + ExperimentalCorrection > 0 ? 'aliceblue' : 'lightpink' }"
-                >{{ DataTable[0][Mindex(model)][col] - DataTable[1][Mindex(model)][col] }}</td>
+                  :style="{ 'background-color': GetValueMale(model, col) - GetValueFemale(model, col) + ExperimentalCorrection > 0 ? 'aliceblue' : 'lightpink' }"
+                >{{ GetValueMale(model, col) - GetValueFemale(model, col) }}</td>
                 <td v-if="TableShow === 'Summary'">
                   <span
-                    v-if="DataTable[0][Mindex(model)][col] - DataTable[1][Mindex(model)][col] > 0"
+                    v-if="GetValueMale(model, col) - GetValueFemale(model, col) > 0"
                   >Masculino</span>
                   <span v-else>Femenino</span>
                 </td>
@@ -194,26 +195,28 @@
       </div>
 
       <div class="col-md-4">
+        <hr>
         <span @click="MostrarX = !MostrarX">Mostrar ❌ {{ MostrarX }}</span><br>
         <span @click="ShowLatexCount = !ShowLatexCount">ShowLatexCount {{ ShowLatexCount }}</span><br>
         <span @click="ShowMinMax = !ShowMinMax">ShowMinMax {{ ShowMinMax }}</span><br>
+        <span @click="ChangeHeatmapType">UseSymmetricHeatMap {{ UseSymmetricHeatMap }}</span><br>
 
         <hr>
-        <h3>Configurar columnas</h3>
+        <h3>Columns</h3>
         <span
           v-for="(col, cidx) in Columns"
           :key="cidx"
           @click="ToggleColumn(col)"
           :style="{ 'background-color': ColumnMeta[col]?.Hide ? 'lightgrey' : 'lightblue' }"
           style="margin-right: 10px"
-        >{{ col }}</span>
+        >{{ ColumnRename(col) }}</span>
 
         <hr>
-        <h3>Configurar
+        <h3>Models
           <small>
-            (Todos
-            <span @click="ToggleAllModels(false)">Activos</span>/
-            <span @click="ToggleAllModels(true)">Ocultos</span>)
+            (All
+            <span @click="ToggleAllModels(false)">On</span>/
+            <span @click="ToggleAllModels(true)">Off</span>)
           </small>
         </h3>
         <span
@@ -335,6 +338,8 @@ export default {
     this.Models.forEach((col, idx) => this.ModelMeta[col] = { Hide: false, Index: idx });
     this.ColumnMeta["prc_retrieval_status_value"].Hide = false;
     this.ColumnMeta["prc_probability"].Hide = false;
+    this.CurrentLabel = this.Labels[0];
+    this.ColumnKey = this.VisibleColumns[0];
 
   },
   props: {
@@ -344,10 +349,10 @@ export default {
     return {
       // App state
       Loading: false,
-      ModelIdx: -1,
+      ModelIdx: 0,
       ColumnKey: '',
-      ChartType: 'radar',
-      CurrentTestKey: 'Original',
+      ChartType: 'bar',
+      CurrentTestKey: 'Yulia',
       RemoveQuestionMarks: true,
       CurrentLabel: '',
 
@@ -357,9 +362,11 @@ export default {
       MostrarX: false,
       ShowLatexCount: false,
       ShowMinMax: true,
+      UseSymmetricHeatMap: true,
+      RedrawingTable: false,
 
       // Tab - Table
-      TableShow: 'M',
+      TableShow: 'M-F Heat',
       TableShowTypes: ['M', 'F', 'M-F', 'M-F Heat', 'M/F', 'Experimental', 'Summary'],
       ExperimentalCorrection: 0,
 
@@ -382,6 +389,7 @@ export default {
         {
           Label: "Debug",
           Visible: false,
+          Hide: true,
         },
         {
           Label: "Latex",
@@ -398,7 +406,7 @@ export default {
           Visible: false,
         },
         {
-          Label: "Explorador",
+          Label: "Explorer",
           Visible: false,
         }
       ],
@@ -497,7 +505,9 @@ export default {
     },
     AsLatex() { },
     StyleHeatmap(column, val) {
-      let heatmapResult = this.CustomHeatMap(column, val);
+      //let heatmapResult = this.CustomHeatMap(column, val);
+      let heatmapResult = this.UseSymmetricHeatMap ? this.CustomHeatMapSymmetric(column, val) : this.CustomHeatMap(column, val);
+      
       let heatMap = heatmapResult[0];
       let colorValue = heatmapResult[1];
 
@@ -516,16 +526,32 @@ export default {
       return "hsl(" + h + ", 100%, 50%)";
     },
     CustomHeatMap(column, val) {
+      return this.CommonHeatMap(val, this.TableMin[column], this.TableMax[column]);
+    },
+    CustomHeatMapSymmetric(column, val) {
+
+      let limit1 = this.TableMin[column]; 
+      if(limit1 < 0) limit1 = limit1*-1;
+
+      let limit2 = this.TableMax[column]; 
+      if(limit2 < 0) limit2 = limit2*-1;
+
+      let limitBig = limit1 > limit2 ? limit1 : limit2;
+      let limitMax = limitBig;
+      let limitMin = limitBig * -1;
+
+      return this.CommonHeatMap(val, limitMin, limitMax); 
+    },
+    CommonHeatMap(val, limitMin, limitMax){
       if (val < 0) {
-        let normVal = this.Normalize(val, this.TableMin[column], 0);
+        let normVal = this.Normalize(val, limitMin, 0);
         let h = (normVal * 250);
         return ["rgb(255," + h + "," + h + ")", h];
       } else {
-        let normVal = this.Normalize(val, 0, this.TableMax[column]);
+        let normVal = this.Normalize(val, 0, limitMax);
         let h = (1 - normVal) * 250;
         return ["rgb(" + h + "," + h + ",255)", h];
       }
-
     },
     Normalize(val, min, max) {
       return (val - min) / (max - min);
@@ -558,8 +584,38 @@ export default {
     ColumnRename(col) {
       if (col === "prc_retrieval_status_value") return "% RSV";
       if (col === "prc_probability") return "% Probability";
+      if (col === "probability") return "Probability";
+      if (col === "retrieval_status_value") return "RSV";
+      if (col === "count") return "Count";
+      if (col === "prc_count") return "% Count";
       return col;
+    },
+    ForceRedrawTable(){
+      this.RedrawingTable = true;
+      setTimeout( () => this.RedrawingTable = false, 1);
+    },
+    ChangeHeatmapType(){
+      this.UseSymmetricHeatMap = !this.UseSymmetricHeatMap;
+      this.ForceRedrawTable();
+    },
+    GetValueMale(model, col){
+      return this.GetValue(0, model, col);
+    },
+    GetValueFemale(model, col){
+      return this.GetValue(1, model, col);
+    },
+    GetValue(classIndex, model, col){
+      let dtClass = this.DataTable[classIndex];
+      let dtModel = dtClass[this.Mindex(model)]
+
+      if(!dtModel){
+        this.CurrentLabel = '';
+        return -1;
+      }
+      let val = dtModel[col];
+      return val;
     }
+    
   },
 
   computed: {
@@ -658,7 +714,7 @@ export default {
       let t = this;
       let map = {};
       t.VisibleColumns.forEach(column => {
-        let values = this.VisibleModels.map((model) => this.DataTable[0][this.Mindex(model)][column] - this.DataTable[1][this.Mindex(model)][column]);
+        let values = this.VisibleModels.map((model) =>this.GetValueMale(model, column) - this.GetValueFemale(model, column));
         map[column] = Math.max(...values);
       });
       return map;
@@ -667,7 +723,7 @@ export default {
       let t = this;
       let map = {};
       t.VisibleColumns.forEach(column => {
-        let values = this.VisibleModels.map((model) => this.DataTable[0][this.Mindex(model)][column] - this.DataTable[1][this.Mindex(model)][column]);
+        let values = this.VisibleModels.map((model) => this.GetValueMale(model, column) - this.GetValueFemale(model, column));
         map[column] = Math.min(...values);
       });
       return map;
@@ -715,6 +771,13 @@ export default {
 
 .mb1 {
   margin-bottom: 1px;
+}
+.mr1 {
+  margin-right: 1px;
+}
+
+.mr5 {
+  margin-right: 5px;
 }
 .mb5 {
   margin-bottom: 5px;
