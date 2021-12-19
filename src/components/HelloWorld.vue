@@ -1,212 +1,234 @@
 <template>
-
   <div class="container-fluid">
-
     <ul class="nav nav-tabs">
       <li class="nav-item" v-for="(Tab, tidx) in Tabs" :key="tidx">
-        <a class="nav-link" v-if="!Tab.Hide" :class="{'active' : Tab.Visible }" @click="SelectTab(Tab.Label)">{{ Tab.Label }}</a>
+        <a
+          class="nav-link"
+          v-if="!Tab.Hide"
+          :class="{ 'active': Tab.Visible }"
+          @click="SelectTab(Tab.Label)"
+        >{{ Tab.Label }}</a>
       </li>
     </ul>
 
     <div class="row" v-show="Tabs[0].Visible">
-      
       <div class="col-2">
-
         <select class="form-select" v-model="CurrentTestKey" @change="Redraw">
           <option selected value="-1">Elegir prueba</option>
-          <option
-            v-for="(test, testIdx) in Tests"
-            :value="test.Key"
-            :key="testIdx">
-            {{test.Label}}
-          </option>
+          <option v-for="(test, testIdx) in Tests" :value="test.Key" :key="testIdx">{{ test.Label }}</option>
         </select>
 
         <select class="form-select" v-model="ModelIdx" @change="Redraw">
           <option selected value="-1">Elegir modelo</option>
-          <option
-            v-for="(model, modelIdx) in Models"
-            :value="modelIdx"
-            :key="modelIdx">
-            {{model}}
-          </option>
+          <option v-for="(model, modelIdx) in Models" :value="modelIdx" :key="modelIdx">{{ model }}</option>
         </select>
 
         <select class="form-select" v-model="ColumnKey" @change="Redraw">
-          <option selected value="">Elegir columna</option>
-          <option
-            v-for="(col, colIdx) in VisibleColumns"
-            :value="col"
-            :key="colIdx">
-            {{col}}
-          </option>
+          <option selected value>Elegir columna</option>
+          <option v-for="(col, colIdx) in VisibleColumns" :value="col" :key="colIdx">{{ col }}</option>
         </select>
 
         <select class="form-select" v-model="ChartType" @change="Redraw">
-          <option selected value="">Tipo Chart</option>
-          <option
-            v-for="(ctype, ctypeidx) in ChartTypes"
-            :value="ctype"
-            :key="ctypeidx">
-            {{ctype}}
-          </option>
+          <option selected value>Tipo Chart</option>
+          <option v-for="(ctype, ctypeidx) in ChartTypes" :value="ctype" :key="ctypeidx">{{ ctype }}</option>
         </select>
-        
+
         <template v-if="Ok">
           <h3>Valores M:</h3>
-          <ul><li v-for="(item, idx) in KeyedDataM" :key="idx">{{item.Key}} : {{item.Value}}</li></ul>
+          <ul>
+            <li v-for="(item, idx) in KeyedDataM" :key="idx">{{ item.Key }} : {{ item.Value }}</li>
+          </ul>
 
           <h3>Valores F:</h3>
-          <ul><li v-for="(item, idx) in KeyedDataF" :key="idx">{{item.Key}} : {{item.Value}}</li></ul>
+          <ul>
+            <li v-for="(item, idx) in KeyedDataF" :key="idx">{{ item.Key }} : {{ item.Value }}</li>
+          </ul>
 
           <h3>Diferencia M-F:</h3>
-          <ul><li v-for="(item, idx) in KeyedDiff" :key="idx"><span :style="{'color':KeyedDiffColors.find(x => x.Key === item.Key).Value}">{{item.Key}}</span> {{item.Value}}</li></ul>
-
+          <ul>
+            <li v-for="(item, idx) in KeyedDiff" :key="idx">
+              <span
+                :style="{ 'color': KeyedDiffColors.find(x => x.Key === item.Key).Value }"
+              >{{ item.Key }}</span>
+              {{ item.Value }}
+            </li>
+          </ul>
         </template>
 
         <div class="form-check" v-if="Ok">
-        <input class="form-check-input" type="checkbox" v-model="RemoveQuestionMarks" @change="Redraw">
-        <label class="form-check-label" for="flexCheckDefault">
-          Ocultar [???]
-        </label>
+          <input
+            class="form-check-input"
+            type="checkbox"
+            v-model="RemoveQuestionMarks"
+            @change="Redraw"
+          />
+          <label class="form-check-label" for="flexCheckDefault">Ocultar [???]</label>
         </div>
-
-
-
-
       </div>
 
       <div class="col-10">
-      <h1 v-if="Ok">{{ CurrentModelName }}
-        <small v-if="Dumps && Dumps[CurrentTestKey]?.Link">
-          <a :href="Dumps[CurrentTestKey].Link" target="_blank"> Paper</a>
-        </small>
-        <small v-if="Ok">
-          <a :href="CurrentModelLink" target="_blank"> Model </a>
-        </small>
-      </h1>
-      <h1 v-else>Sin configurar</h1>
-      <div class="caja">
-        <Radial
-          :labels="Labels"
-          :datam="DataM"
-          :dataf="DataF"
-          :type="ChartType"
-          v-if="Ok && !Loading"
+        <h1 v-if="Ok">
+          {{ CurrentModelName }}
+          <small v-if="Dumps && Dumps[CurrentTestKey]?.Link">
+            <a :href="Dumps[CurrentTestKey].Link" target="_blank">Paper</a>
+          </small>
+          <small v-if="Ok">
+            <a :href="CurrentModelLink" target="_blank">Model</a>
+          </small>
+        </h1>
+        <h1 v-else>Sin configurar</h1>
+        <div class="caja">
+          <Radial
+            :labels="Labels"
+            :datam="DataM"
+            :dataf="DataF"
+            :type="ChartType"
+            v-if="Ok && !Loading"
           ></Radial>
+        </div>
       </div>
-
-      </div>
-
     </div>
 
     <div class="row" v-show="Tabs[1].Visible">
-      
-      <div class="col-md-2">
 
-        <select class="form-select" v-model="CurrentTestKey" @change="Redraw">
-          <option selected value="-1">Elegir prueba</option>
-          <option
-            v-for="(test, testIdx) in Tests"
-            :value="test.Key"
-            :key="testIdx">
-            {{test.Label}}
-          </option>
-        </select>
+      <div class="col-12">
+        <div class="row mb5">
+          <div class="col-md-3">
+            <select class="form-select" v-model="CurrentTestKey" @change="Redraw">
+              <option selected value="-1">Elegir prueba</option>
+              <option v-for="(test, testIdx) in Tests" :value="test.Key" :key="testIdx">{{ test.Label }}</option>
+            </select>
+          </div>
 
-        <select class="form-select" v-model="CurrentLabel" @change="Redraw">
-          <option selected value="">Elegir label</option>
-          <option
-            v-for="(label, labelIdx) in Labels"
-            :value="label"
-            :key="labelIdx">
-            {{label}}
-          </option>
-        </select>
-        <select class="form-select" v-model="TableShow" @change="Redraw">
-          <option selected value="">Elegir label</option>
-          <option
-            v-for="(ts, tsIdx) in TableShowTypes"
-            :value="ts"
-            :key="tsIdx">
-            {{ts}}
-          </option>
-        </select>
+          <div class="col-md-3">
+            <select class="form-select" v-model="CurrentLabel" @change="Redraw">
+              <option selected value>Elegir label</option>
+              <option v-for="(label, labelIdx) in Labels" :value="label" :key="labelIdx">{{ label }}</option>
+            </select>
+          </div>
 
-        <div v-if="TableShow==='Experimental'">
-          <label> Corrección </label><input type="number" step="0.1" v-model="ExperimentalCorrection"> {{ ExperimentalCorrection }}
+          <div class="col-md-3">
+            <select class="form-select" v-model="TableShow" @change="Redraw">
+              <option selected value>Elegir label</option>
+              <option v-for="(ts, tsIdx) in TableShowTypes" :value="ts" :key="tsIdx">{{ ts }}</option>
+            </select>
+          </div>
+
+          <div class="col-md-3">
+            <div v-if="TableShow === 'Experimental'">
+              <label>Corrección</label>
+              <input type="number" step="0.1" v-model="ExperimentalCorrection" />
+              {{ ExperimentalCorrection }}
+            </div>
+          </div>
         </div>
       </div>
 
       <div class="col-8">
-
-        <table v-if="CurrentLabel" class="table">
-          <tr>
-            <th></th>
-            <th v-for="(col, colIdx) in VisibleColumns" :key="colIdx">
-              {{ col }}
-            </th>
-          </tr>
-          <tr v-for="(model, mIdx) in VisibleModels" :key="mIdx">
-            <th style="text-align: right;">{{model}} <span v-show="MostrarX" @click="ToggleModel(model)">❌</span></th>
-            <template v-for="(col, colIdx) in VisibleColumns" :key="colIdx">
-              <td v-if="TableShow === 'M'">{{ DataTable[0][Mindex(model)][col] }}</td>
-              <td v-if="TableShow === 'F'">{{ DataTable[1][Mindex(model)][col] }}</td>
-              <td v-if="TableShow === 'M-F'" :style="{'background-color': DataTable[0][Mindex(model)][col] - DataTable[1][Mindex(model)][col] > 0 ? 'aliceblue' : 'lightpink'}">
-                {{ Cut(DataTable[0][Mindex(model)][col] - DataTable[1][Mindex(model)][col] )}}
-              </td>
-              <td v-if="TableShow === 'M-F Heat'" :style="StyleHeatmap(col, DataTable[0][Mindex(model)][col] - DataTable[1][Mindex(model)][col])">
-                {{ Cut(DataTable[0][Mindex(model)][col] - DataTable[1][Mindex(model)][col] )}} 
-              </td>
-              <td v-if="TableShow === 'M/F'" :style="{'background-color': DataTable[0][Mindex(model)][col] - DataTable[1][Mindex(model)][col] > 0 ? 'aliceblue' : 'lightpink'}">
-                {{ DataTable[0][Mindex(model)][col] / DataTable[1][Mindex(model)][col] }}
-              </td>
-              <td v-if="TableShow === 'Experimental'" :style="{'background-color': DataTable[0][Mindex(model)][col] - DataTable[1][Mindex(model)][col] + ExperimentalCorrection > 0 ? 'aliceblue' : 'lightpink'}">
-                  {{ DataTable[0][Mindex(model)][col] - DataTable[1][Mindex(model)][col] }}
-              </td>
-              <td v-if="TableShow === 'Summary'">
-                <span v-if="DataTable[0][Mindex(model)][col] - DataTable[1][Mindex(model)][col] > 0">Masculino</span>
-                <span v-else>Femenino</span>
-              </td>
-            </template>
-          </tr>
-          <tr>
-            <th>Latex Count</th>
+        <table v-if="CurrentLabel" class="table b1">
+          <tbody>
+            <tr>
+              <th></th>
+              <th
+                v-for="(col, colIdx) in VisibleColumns"
+                :key="colIdx"
+                class="bb1"
+              >{{ ColumnRename(col) }}</th>
+            </tr>
+            <tr v-for="(model, mIdx) in VisibleModels" :key="mIdx">
+              <th style="text-align: right;" class="br1">
+                {{ model }}
+                <span v-show="MostrarX" @click="ToggleModel(model)">❌</span>
+              </th>
               <template v-for="(col, colIdx) in VisibleColumns" :key="colIdx">
-                
+                <td v-if="TableShow === 'M'">{{ DataTable[0][Mindex(model)][col] }}</td>
+                <td v-if="TableShow === 'F'">{{ DataTable[1][Mindex(model)][col] }}</td>
+                <td
+                  v-if="TableShow === 'M-F'"
+                  :style="{ 'background-color': DataTable[0][Mindex(model)][col] - DataTable[1][Mindex(model)][col] > 0 ? 'aliceblue' : 'lightpink' }"
+                >{{ Cut(DataTable[0][Mindex(model)][col] - DataTable[1][Mindex(model)][col]) }}</td>
+                <td
+                  v-if="TableShow === 'M-F Heat'"
+                  :style="StyleHeatmap(col, DataTable[0][Mindex(model)][col] - DataTable[1][Mindex(model)][col])"
+                >{{ Cut(DataTable[0][Mindex(model)][col] - DataTable[1][Mindex(model)][col]) }}</td>
+                <td
+                  v-if="TableShow === 'M/F'"
+                  :style="{ 'background-color': DataTable[0][Mindex(model)][col] - DataTable[1][Mindex(model)][col] > 0 ? 'aliceblue' : 'lightpink' }"
+                >{{ DataTable[0][Mindex(model)][col] / DataTable[1][Mindex(model)][col] }}</td>
+                <td
+                  v-if="TableShow === 'Experimental'"
+                  :style="{ 'background-color': DataTable[0][Mindex(model)][col] - DataTable[1][Mindex(model)][col] + ExperimentalCorrection > 0 ? 'aliceblue' : 'lightpink' }"
+                >{{ DataTable[0][Mindex(model)][col] - DataTable[1][Mindex(model)][col] }}</td>
+                <td v-if="TableShow === 'Summary'">
+                  <span
+                    v-if="DataTable[0][Mindex(model)][col] - DataTable[1][Mindex(model)][col] > 0"
+                  >Masculino</span>
+                  <span v-else>Femenino</span>
+                </td>
+              </template>
+            </tr>
+            <tr v-if="ShowLatexCount">
+              <th>Latex Count</th>
+              <template v-for="(col, colIdx) in VisibleColumns" :key="colIdx">
                 <td>{{ SummaryRow(col) }}</td>
               </template>
-          </tr>
+            </tr>
+          </tbody>
 
+          <tfoot class="bt3">
+            <tr v-if="ShowMinMax">
+              <th class="r br1">Min</th>
+              <template v-for="(col, colIdx) in VisibleColumns" :key="colIdx">
+                <td>{{ Cut(TableMin[col]) }}</td>
+              </template>
+            </tr>
+
+            <tr v-if="ShowMinMax">
+              <th class="r br1">Max</th>
+              <template v-for="(col, colIdx) in VisibleColumns" :key="colIdx">
+                <td>{{ Cut(TableMax[col]) }}</td>
+              </template>
+            </tr>
+          </tfoot>
         </table>
+      </div>
 
-        <div v-if="TableShow === 'M-F Heat'">
-          {{ TableMin }} - {{ TableMax }}
-        </div>
+      <div class="col-md-4">
+        <span @click="MostrarX = !MostrarX">Mostrar ❌ {{ MostrarX }}</span><br>
+        <span @click="ShowLatexCount = !ShowLatexCount">ShowLatexCount {{ ShowLatexCount }}</span><br>
+        <span @click="ShowMinMax = !ShowMinMax">ShowMinMax {{ ShowMinMax }}</span><br>
+
+        <hr>
+        <h3>Configurar columnas</h3>
+        <span
+          v-for="(col, cidx) in Columns"
+          :key="cidx"
+          @click="ToggleColumn(col)"
+          :style="{ 'background-color': ColumnMeta[col]?.Hide ? 'lightgrey' : 'lightblue' }"
+          style="margin-right: 10px"
+        >{{ col }}</span>
+
+        <hr>
+        <h3>Configurar
+          <small>
+            (Todos
+            <span @click="ToggleAllModels(false)">Activos</span>/
+            <span @click="ToggleAllModels(true)">Ocultos</span>)
+          </small>
+        </h3>
+        <span
+          v-for="(model, midx) in Models"
+          :key="midx"
+          @click="ToggleModel(model)"
+          :style="{ 'background-color': ModelMeta[model]?.Hide ? 'lightgrey' : 'lightblue' }"
+          style="margin-right: 10px"
+        >{{ model }}</span>
+      </div>
 
       </div>
 
-      <hr>
-      <div class="col-md-12">
-        <span @click="MostrarX = !MostrarX">Mostrar ❌ {{ MostrarX }}</span>
-      </div>
-        <div class="col-md-12">
-          <h3>Configurar columnas</h3>
-          <span v-for="(col, cidx) in Columns" :key="cidx" @click="ToggleColumn(col)" :style="{'background-color' : ColumnMeta[col]?.Hide ? 'lightgrey' : 'lightblue'}" style="margin-right: 10px">
-            {{ col }}
-          </span>
-        </div>
-
-        <div class="col-md-12">
-          <h3>Configurar <small>(Todos <span @click="ToggleAllModels(false)">Activos</span>/<span @click="ToggleAllModels(true)">Ocultos</span>)</small></h3>
-          <span v-for="(model, midx) in Models" :key="midx" @click="ToggleModel(model)" :style="{'background-color' : ModelMeta[model]?.Hide ? 'lightgrey' : 'lightblue'}" style="margin-right: 10px">
-            {{ model }}
-          </span>
-        </div>
-      </div>
 
     <div class="row" v-show="Tabs[2].Visible">
-
       <!-- <div class="col-md-12">
         <h3>Configurar columnas</h3>
         <span v-for="(col, cidx) in Columns" :key="cidx" @click="ToggleColumn(col)" :style="{'background-color' : ColumnMeta[col]?.Hide ? 'lightgrey' : 'lightblue'}" style="margin-right: 10px">
@@ -219,69 +241,60 @@
         <span v-for="(model, midx) in Models" :key="midx" @click="ToggleModel(model)" :style="{'background-color' : ColumnMeta[model]?.Hide ? 'lightgrey' : 'lightblue'}" style="margin-right: 10px">
           {{ model }}
         </span>
-      </div> -->
-
+      </div>-->
     </div>
 
     <div class="row" v-show="Tabs[3].Visible">
+      <div class="col" v-if="Ok">{{ DataM }}</div>
 
-      <div class="col" v-if="Ok">
-        {{ DataM }}
-      </div>
-
-      <div class="coenable-prc" v-if="Ok">
-        {{ DataF }}
-      </div>
+      <div class="coenable-prc" v-if="Ok">{{ DataF }}</div>
 
       <div class="col">
         <pre>
           ModelIdx: {{ $data.ModelIdx }}
           ColumnKey: {{ $data.ColumnKey }}  
-          OK: {{ Ok}}
+          OK: {{ Ok }}
         </pre>
       </div>
 
-        <div class="col">
-          Models
-          <pre>{{ Models }}</pre>
-        </div>
+      <div class="col">
+        Models
+        <pre>{{ Models }}</pre>
+      </div>
 
-        <div class="col">
+      <div class="col">
         Columns
-          <pre>{{ Columns }}</pre>
-        </div>
+        <pre>{{ Columns }}</pre>
+      </div>
 
-        <div class="col">
-          VisibleColumns
-          {{ VisibleColumns }}
-        </div>
+      <div class="col">
+        VisibleColumns
+        {{ VisibleColumns }}
+      </div>
 
-        <div class="col">
-          Labels
-          <pre>{{ Labels }}</pre>
-        </div>
+      <div class="col">
+        Labels
+        <pre>{{ Labels }}</pre>
+      </div>
 
-        <div class="col">
-          <pre>
+      <div class="col">
+        <pre>
             {{ DataTable }}
           </pre>
-        </div>
-
+      </div>
     </div>
 
     <div class="row" v-show="Tabs[4].Visible">
-      <h1> Latex </h1>
+      <h1>Latex</h1>
       <textarea v-model="LatexContent"></textarea>
     </div>
 
-  <div class="row" v-show="Tabs[5].Visible">
+    <div class="row" v-show="Tabs[5].Visible"></div>
 
-  </div>
-
-  <div class="row" v-show="Tabs[6].Visible">
+    <div class="row" v-show="Tabs[6].Visible">
       <tabla-adjetivos></tabla-adjetivos>
 
-      <hr>
+      <hr />
 
       <div class="col-3">
         <qty-line-chart :EnableWordCount="true" named="wc"></qty-line-chart>
@@ -292,19 +305,12 @@
       <div class="col-4">
         <qty-line-chart :EnablePrc="true" named="prc"></qty-line-chart>
       </div>
+    </div>
 
-  </div>
-  
     <div class="row" v-show="Tabs[7].Visible">
       <explorador-predicciones></explorador-predicciones>
+    </div>
   </div>
-
-
-
-</div>
-
-
-
 </template>
 
 <script>
@@ -324,17 +330,17 @@ import ExploradorPredicciones from './ExploradorPredicciones.vue'
 export default {
   name: 'HelloWorld',
   components: { Radial, QtyLineChart, TablaAdjetivos, ExploradorPredicciones },
-  created(){
-    this.Columns.forEach( col => this.ColumnMeta[col] = { Hide: true} );
-    this.Models.forEach( (col, idx) => this.ModelMeta[col] = { Hide: false, Index: idx} );
+  created() {
+    this.Columns.forEach(col => this.ColumnMeta[col] = { Hide: true });
+    this.Models.forEach((col, idx) => this.ModelMeta[col] = { Hide: false, Index: idx });
     this.ColumnMeta["prc_retrieval_status_value"].Hide = false;
     this.ColumnMeta["prc_probability"].Hide = false;
-    
+
   },
-  props: { 
+  props: {
     msg: String
   },
-  data(){
+  data() {
     return {
       // App state
       Loading: false,
@@ -348,7 +354,9 @@ export default {
       // Tab - Config
       ColumnMeta: {},
       ModelMeta: {},
-      MostrarX: true,
+      MostrarX: false,
+      ShowLatexCount: false,
+      ShowMinMax: true,
 
       // Tab - Table
       TableShow: 'M',
@@ -400,12 +408,12 @@ export default {
 
       // Data
       Dumps: {
-        Original: { 
+        Original: {
           Key: 'Original',
           Label: 'Original VISIBLE/INVISIBLE POSITIVO/NEGATIVO',
           Data: TestOriginal
         },
-        OriginalNegado: { 
+        OriginalNegado: {
           Label: 'Original Negado',
           Key: 'OriginalNegado',
           Data: TestOriginalNegado
@@ -436,65 +444,65 @@ export default {
       // Static
       ChartTypes: ['radar', 'bar', 'line', 'doughnut', 'polarArea'],
     }
-  }, 
+  },
   methods: {
-    Redraw(){
+    Redraw() {
       this.Loading = true;
-      setTimeout( () => this.Loading = false, 100);
+      setTimeout(() => this.Loading = false, 100);
     },
-    KVData(idx){
+    KVData(idx) {
       let modelm = this.Data[this.ModelIdx]["py/tuple"][idx];
       let values = [];
-      this.Labels.forEach( label => values.push({ Key: label, Value: modelm[label][this.ColumnKey]}) );
+      this.Labels.forEach(label => values.push({ Key: label, Value: modelm[label][this.ColumnKey] }));
       return values;
     },
-    SelectTab(label){
-      this.Tabs = this.Tabs.map( (tab) => {
+    SelectTab(label) {
+      this.Tabs = this.Tabs.map((tab) => {
         tab.Visible = false;
         return tab;
       });
-      this.Tabs.find( x => x.Label === label).Visible = true;
+      this.Tabs.find(x => x.Label === label).Visible = true;
     },
-    WriteLatex(text){
+    WriteLatex(text) {
       this.LatexContent = text;
       this.SelectTab("Latex");
     },
-    ToggleColumn(col){
-      if(!this.ColumnMeta[col]) this.ColumnMeta[col] = {};
+    ToggleColumn(col) {
+      if (!this.ColumnMeta[col]) this.ColumnMeta[col] = {};
       this.ColumnMeta[col].Hide = !this.ColumnMeta[col].Hide
     },
-    ToggleModel(model){
-      if(!this.ModelMeta[model]) this.ModelMeta[model] = {};
+    ToggleModel(model) {
+      if (!this.ModelMeta[model]) this.ModelMeta[model] = {};
       this.ModelMeta[model].Hide = !this.ModelMeta[model].Hide
     },
-    ToggleAllModels(hidden){
-      Object.keys(this.ModelMeta).forEach( (meta) => this.ModelMeta[meta].Hide = hidden );
+    ToggleAllModels(hidden) {
+      Object.keys(this.ModelMeta).forEach((meta) => this.ModelMeta[meta].Hide = hidden);
     },
-    Cut(item){
-      item = item+"";
-      if(!item.includes(".")) return item;
+    Cut(item) {
+      item = item + "";
+      if (!item.includes(".")) return item;
 
       let partesExponente = item.split("e");
       let exponente = "";
-      if(partesExponente.length > 1){
+      if (partesExponente.length > 1) {
         item = partesExponente[0];
         exponente = partesExponente[1];
       }
-      debugger;
+
       let parts = item.split(".");
-      let res = parts[0] + "." + parts[1].slice(0,2);
-      if(exponente !== "")
+      let res = parts[0] + "." + parts[1].slice(0, 2);
+      if (exponente !== "")
         res = res + "e" + exponente;
       return res;
     },
-    AsLatex(){},
-    StyleHeatmap(column, val){
+    AsLatex() { },
+    StyleHeatmap(column, val) {
       let heatmapResult = this.CustomHeatMap(column, val);
       let heatMap = heatmapResult[0];
       let colorValue = heatmapResult[1];
 
       let color = "black";
-      if(val > 0 && colorValue < 150)
+      if (val > 0 && colorValue < 150)
         color = "white";
 
       return {
@@ -502,59 +510,64 @@ export default {
         color,
       };
     },
-    HeatMap(column, val){
+    HeatMap(column, val) {
       let normVal = this.Normalize(val, this.TableMin[column], this.TableMax[column]);
       let h = (1.0 - normVal) * 240
       return "hsl(" + h + ", 100%, 50%)";
     },
-    CustomHeatMap(column, val){
-      if( val < 0 ){
+    CustomHeatMap(column, val) {
+      if (val < 0) {
         let normVal = this.Normalize(val, this.TableMin[column], 0);
         let h = (normVal * 250);
-        return ["rgb(255,"+ h + "," + h+")", h];
+        return ["rgb(255," + h + "," + h + ")", h];
       } else {
         let normVal = this.Normalize(val, 0, this.TableMax[column]);
-        let h = (1 - normVal )* 250;
-        return ["rgb("+h+","+h+",255)", h];
+        let h = (1 - normVal) * 250;
+        return ["rgb(" + h + "," + h + ",255)", h];
       }
-      
+
     },
-    Normalize(val, min, max){
+    Normalize(val, min, max) {
       return (val - min) / (max - min);
     },
-//       let cols
-//       let template = `
-// \\begin{center}
-// \\begin{tabular}{ c c c }
-//  cell1 & cell2 & cell3 \\ 
-//  cell4 & cell5 & cell6 \\  
-//  cell7 & cell8 & cell9    
-// \\end{tabular}
-// \\end{center}
-// `;
-//     }
+    //       let cols
+    //       let template = `
+    // \\begin{center}
+    // \\begin{tabular}{ c c c }
+    //  cell1 & cell2 & cell3 \\ 
+    //  cell4 & cell5 & cell6 \\  
+    //  cell7 & cell8 & cell9    
+    // \\end{tabular}
+    // \\end{center}
+    // `;
+    //     }
 
-  SummaryRow(col){
-    let res = this.Models.map( (model, mIdx) => {
-      let val = this.DataTable[0][mIdx][col] - this.DataTable[1][mIdx][col];
-      if(val === 0) return '';
-      let tag = val > 0 ? 'Masculino' : 'Femenino';
-      return tag;
-    }).reduce((cnt, cur) => (cnt[cur] = cnt[cur] + 1 || 1, cnt), {});
-    let latex = this.CurrentLabel + ' & ' + (res['Masculino'] ?? 0) + ' & ' + ( res['Femenino'] ?? 0) + '  \\\\';
-    return latex.replace("[","").replace("]","");
+    SummaryRow(col) {
+      let res = this.Models.map((model, mIdx) => {
+        let val = this.DataTable[0][mIdx][col] - this.DataTable[1][mIdx][col];
+        if (val === 0) return '';
+        let tag = val > 0 ? 'Masculino' : 'Femenino';
+        return tag;
+      }).reduce((cnt, cur) => (cnt[cur] = cnt[cur] + 1 || 1, cnt), {});
+      let latex = this.CurrentLabel + ' & ' + (res['Masculino'] ?? 0) + ' & ' + (res['Femenino'] ?? 0) + '  \\\\';
+      return latex.replace("[", "").replace("]", "");
+    },
+    Mindex(model) {
+      return this.ModelMeta[model].Index;
+    },
+    ColumnRename(col) {
+      if (col === "prc_retrieval_status_value") return "% RSV";
+      if (col === "prc_probability") return "% Probability";
+      return col;
+    }
   },
-  Mindex(model){
-    return this.ModelMeta[model].Index;
-  }
-  },
-  
+
   computed: {
-    Data(){
+    Data() {
       let key = this.CurrentTestKey;
       return this.Dumps[key].Data;
     },
-    DataTable(){
+    DataTable() {
       let tableM = [];
       let tableF = [];
       let data = this.Data;
@@ -564,97 +577,97 @@ export default {
       // for( let model in model)
       //   table.push(model);
 
-      for( let i = 0; i < data.length; i++){
+      for (let i = 0; i < data.length; i++) {
         let m = this.Data[i]["py/tuple"][1];
         let f = this.Data[i]["py/tuple"][2];
-        tableM.push(...Object.values(m).filter( xrow => xrow.cat === this.CurrentLabel ));
-        tableF.push(...Object.values(f).filter( xrow => xrow.cat === this.CurrentLabel ));
+        tableM.push(...Object.values(m).filter(xrow => xrow.cat === this.CurrentLabel));
+        tableF.push(...Object.values(f).filter(xrow => xrow.cat === this.CurrentLabel));
 
         // tableM.push(...Object.values(m).map( row => Object.values(row).splice(1) ).filter( xrow => xrow[0] === this.CurrentLabel ));
         // tableF.push(...Object.values(f).map( row => Object.values(row).splice(1) ).filter( xrow => xrow[0] === this.CurrentLabel ));
       }
 
-      return [tableM, tableF ];
+      return [tableM, tableF];
     },
-    KeyedDataM(){
+    KeyedDataM() {
       return this.KVData(1);
     },
-    KeyedDataF(){
+    KeyedDataF() {
       return this.KVData(2);
     },
-    KeyedDiff(){
+    KeyedDiff() {
       let items = Object.values(this.KeyedDataM);
       let arr = [];
 
-      for( let item of items ) {
-        arr.push( {Key: item.Key, Value: this.KeyedDataM.find(x => x.Key === item.Key).Value - this.KeyedDataF.find(x => x.Key === item.Key).Value});
+      for (let item of items) {
+        arr.push({ Key: item.Key, Value: this.KeyedDataM.find(x => x.Key === item.Key).Value - this.KeyedDataF.find(x => x.Key === item.Key).Value });
       }
       return arr;
     },
-    KeyedDiffColors(){
+    KeyedDiffColors() {
       let items = Object.values(this.KeyedDiff);
       let arr = [];
 
-      for( let item of items ) {
+      for (let item of items) {
         let color = item.Value > 0 ? 'blue' : 'darkmagenta';
-        arr.push( {Key: item.Key, Value: color} );
+        arr.push({ Key: item.Key, Value: color });
       }
       return arr;
     },
-    DataM(){
-      return this.KVData(1).map( x => x.Value);
+    DataM() {
+      return this.KVData(1).map(x => x.Value);
     },
-    DataF(){
-      return this.KVData(2).map( x => x.Value);
+    DataF() {
+      return this.KVData(2).map(x => x.Value);
     },
-    CurrentModelName(){
+    CurrentModelName() {
       return this.Data[this.ModelIdx]["py/tuple"][0];
     },
-    Ok(){
+    Ok() {
       return this.ModelIdx !== -1 && this.ColumnKey !== '';
     },
-    Labels(){
+    Labels() {
       let labels = Object
         .keys(this.Data[0]["py/tuple"][1])
-        .filter( x => x !== "[_TOTAL]");
-      if(this.RemoveQuestionMarks)
-      return labels.filter( x => x !== "[???]");
+        .filter(x => x !== "[_TOTAL]");
+      if (this.RemoveQuestionMarks)
+        return labels.filter(x => x !== "[???]");
       return labels;
     },
-    Models(){
-      return this.Data.map( modelResult => modelResult["py/tuple"][0] );
+    Models() {
+      return this.Data.map(modelResult => modelResult["py/tuple"][0]);
     },
-    Columns(){
+    Columns() {
       return Object.keys(this.Data[0]["py/tuple"][1]["[???]"])
-      .filter( x => !x.includes("py/") )
-      .filter( x => x !== "cat" );
+        .filter(x => !x.includes("py/"))
+        .filter(x => x !== "cat");
     },
-    VisibleColumns(){
-      return this.Columns.filter( col => this.ColumnMeta[col]?.Hide !== true);
+    VisibleColumns() {
+      return this.Columns.filter(col => this.ColumnMeta[col]?.Hide !== true);
     },
-    VisibleModels(){
-      return this.Models.filter( col => this.ModelMeta[col]?.Hide !== true);
+    VisibleModels() {
+      return this.Models.filter(col => this.ModelMeta[col]?.Hide !== true);
     },
-    Tests(){
+    Tests() {
       return Object.values(this.Dumps);
     },
-    CurrentModelLink(){
+    CurrentModelLink() {
       return 'https://huggingface.co/' + this.CurrentModelName;
     },
-    TableMax(){
+    TableMax() {
       let t = this;
       let map = {};
-      t.VisibleColumns.forEach( column => {
-        let values = this.VisibleModels.map( (model) => this.DataTable[0][this.Mindex(model)][column] - this.DataTable[1][this.Mindex(model)][column] );
+      t.VisibleColumns.forEach(column => {
+        let values = this.VisibleModels.map((model) => this.DataTable[0][this.Mindex(model)][column] - this.DataTable[1][this.Mindex(model)][column]);
         map[column] = Math.max(...values);
       });
       return map;
     },
-    TableMin(){
+    TableMin() {
       let t = this;
       let map = {};
-      t.VisibleColumns.forEach( column => {
-        let values = this.VisibleModels.map( (model) => this.DataTable[0][this.Mindex(model)][column] - this.DataTable[1][this.Mindex(model)][column] );
+      t.VisibleColumns.forEach(column => {
+        let values = this.VisibleModels.map((model) => this.DataTable[0][this.Mindex(model)][column] - this.DataTable[1][this.Mindex(model)][column]);
         map[column] = Math.min(...values);
       });
       return map;
@@ -670,12 +683,83 @@ export default {
 
 
   }
-  
+
 }
 </script>
 
 <style scoped>
-pre,h1, li {
+/* Override */
+.table > :not(caption) > * > * {
+    border-bottom-width: 0px;
+}
+.nav {
+  justify-content: center;
+  margin-bottom: 10px;
+  border-bottom: 2px solid #82c0f7;
+}
+/* Custom */
+.bb1{
+  border-bottom: 1px solid black !important;
+}
+.bb3{
+  border-bottom: 3px solid black;
+}
+
+.br1{
+  border-right: 1px solid black;
+}
+
+.br3{
+  border-right: 3px solid black;
+}
+
+.mb1 {
+  margin-bottom: 1px;
+}
+.mb5 {
+  margin-bottom: 5px;
+}
+.mb10 {
+  margin-bottom: 10px;
+}
+/* Override */
+.table > :not(caption) > * > * {
+  border-bottom-width: 0px;
+}
+.nav {
+  justify-content: center;
+}
+/* Custom */
+.bb1 {
+  border-bottom: 1px solid black !important;
+}
+.bb3 {
+  border-bottom: 3px solid black;
+}
+
+.br1 {
+  border-right: 1px solid black;
+}
+
+.br3 {
+  border-right: 3px solid black;
+}
+
+.bt3 {
+  border-top: 2px solid black;
+}
+
+.b1 {
+  border: 1px solid black;
+}
+
+.r {
+  text-align: right;
+}
+
+pre,
+h1,
+li {
   text-align: left;
 }
 .caja {
@@ -686,10 +770,9 @@ pre,h1, li {
 li {
   font-family: monospace;
   list-style-type: none;
-  
 }
 
 h3 {
-  margin-top: 15px !important
+  margin-top: 15px !important;
 }
 </style>
