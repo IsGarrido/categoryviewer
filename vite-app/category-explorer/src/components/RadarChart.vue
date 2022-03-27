@@ -5,9 +5,6 @@
 </template>
 
 <script>
-/* eslint-disable no-unused-vars */
-
-//import Chart from 'chart.js'
 import Chart from "chart.js/auto";
 
 export default {

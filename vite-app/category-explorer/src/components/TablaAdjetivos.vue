@@ -73,7 +73,7 @@
 </template>
 
 <script>
-import stats from "./../../../StereoES/result_data/FillMask/stats_by_model.json";
+import stats from "../assets/data/fillmask/stats_by_model.json";
 
 export default {
   created() {
@@ -89,10 +89,6 @@ export default {
       return { Name: x, Enabled: true };
     });
     this.Columns.shift();
-    //this.Columns = [...tCols, ...this.Columns];
-
-    //this.Types.find(x => x.Name === "all" ).Enabled = false;
-    //this.Types.find(x => x.Name === "global" ).Enabled = false;
     this.SortBy = this.Columns[1].Name;
   },
   data() {

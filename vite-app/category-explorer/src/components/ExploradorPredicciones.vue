@@ -54,7 +54,7 @@
 </template>
 
 <script>
-import predictions from "./../../../StereoES/result_data/FillMask/predictions.json";
+import predictions from "../assets/data/fillmask/predictions.json";
 
 export default {
   created() {

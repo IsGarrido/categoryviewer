@@ -435,14 +435,11 @@
 </template>
 
 <script>
-/* eslint-disable no-debugger */
-/* eslint-disable vue/no-unused-components */
 
-import TestOriginal from "./../../../StereoES/result_fillmask/categorias_polaridad_visibilidad/run_result.json";
-import TestOriginalNegado from "./../../../StereoES/result_fillmask/categorias_polaridad_visibilidad_negadas/run_result.json";
-import TestFoaFoa from "./../../../StereoES/result_fillmask/categorias_polaridad_foa_foa/run_result.json";
-import TestYulia from "./../../../StereoES/result_fillmask/categorias_yulia/run_result.json";
-// import TestProfesiones from './../../../StereoES/result_fillmask_profesiones/base/run_result.json'
+import TestOriginal from "../assets/data/categorias_polaridad_visibilidad/run_result.json?data";
+import TestOriginalNegado from "./../assets/data/categorias_polaridad_visibilidad_negadas/run_result.json";
+import TestFoaFoa from "./../assets/data/categorias_polaridad_foa_foa/run_result.json";
+import TestYulia from "./../assets/data/categorias_yulia/run_result.json";
 import RadarChart from "./RadarChart.vue";
 import QtyLineChart from "./Chart/QtyLineChart.vue";
 import TablaAdjetivos from "./TablaAdjetivos.vue";
@@ -571,13 +568,7 @@ export default {
           Data: TestYulia,
           Link: "http://www.cs.cmu.edu/~ytsvetko/papers/adj-lrec14.pdf",
         },
-        // Profesiones: {
-        //   Key: 'Profesiones',
-        //   Label: 'Profesiones',
-        //   Data: TestProfesiones,
-        //   Link: 'https://www.cnae.com.es/lista-actividades.php',
-        //   DataLink: 'https://www.ine.es/jaxiT3/Tabla.htm?t=4128'
-        // }
+        
       },
 
       // Static
@@ -698,18 +689,6 @@ export default {
     Normalize(val, min, max) {
       return (val - min) / (max - min);
     },
-    //       let cols
-    //       let template = `
-    // \\begin{center}
-    // \\begin{tabular}{ c c c }
-    //  cell1 & cell2 & cell3 \\
-    //  cell4 & cell5 & cell6 \\
-    //  cell7 & cell8 & cell9
-    // \\end{tabular}
-    // \\end{center}
-    // `;
-    //     }
-
     SummaryRow(col) {
       let res = this.Models.map((model, mIdx) => {
         let val = this.DataTable[0][mIdx][col] - this.DataTable[1][mIdx][col];
@@ -774,11 +753,6 @@ export default {
       let tableM = [];
       let tableF = [];
       let data = this.Data;
-      // let models = this.Models;
-
-      // table.push(" ");
-      // for( let model in model)
-      //   table.push(model);
 
       for (let i = 0; i < data.length; i++) {
         let m = this.Data[i]["py/tuple"][1];
@@ -790,8 +764,6 @@ export default {
           ...Object.values(f).filter((xrow) => xrow.cat === this.CurrentLabel)
         );
 
-        // tableM.push(...Object.values(m).map( row => Object.values(row).splice(1) ).filter( xrow => xrow[0] === this.CurrentLabel ));
-        // tableF.push(...Object.values(f).map( row => Object.values(row).splice(1) ).filter( xrow => xrow[0] === this.CurrentLabel ));
       }
 
       return [tableM, tableF];
@@ -891,14 +863,6 @@ export default {
       });
       return map;
     },
-    // TableMin(){
-    //   let t = this;
-
-    //   return t.VisibleColumns.map( column => {
-    //     let values = this.Models.map( (model, mIdx) => this.DataTable[0][mIdx][column] - this.DataTable[1][mIdx][column] );
-    //     return {[column]: Math.min(...values)}
-    //   });
-    // },
   },
 };
 </script>
